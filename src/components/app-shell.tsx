@@ -10,29 +10,29 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 
 const navigation = [
-  { to: "/_auth/", label: "Visão Geral", icon: LayoutGrid },
-  { to: "/_auth/agenda", label: "Agenda", icon: CalendarDays },
-  { to: "/_auth/clientes", label: "Clientes", icon: Users },
-  { to: "/_auth/crm", label: "CRM", icon: TrendingUp },
-  { to: "/_auth/atendimentos", label: "Atendimentos", icon: Stethoscope },
-  { to: "/_auth/financeiro", label: "Financeiro", icon: Wallet },
-  { to: "/_auth/marketing", label: "Marketing", icon: Megaphone, badge: "Em breve" },
-  { to: "/_auth/estoque", label: "Estoque", icon: Package, badge: "Em breve" },
-  { to: "/_auth/equipe", label: "Equipe", icon: UsersRound, badge: "Em breve" },
-  { to: "/_auth/relatorios", label: "Relatórios", icon: BarChart3, badge: "Em breve" },
+  { to: "/", label: "Visão Geral", icon: LayoutGrid },
+  { to: "/agenda", label: "Agenda", icon: CalendarDays },
+  { to: "/clientes", label: "Clientes", icon: Users },
+  { to: "/crm", label: "CRM", icon: TrendingUp },
+  { to: "/atendimentos", label: "Atendimentos", icon: Stethoscope },
+  { to: "/financeiro", label: "Financeiro", icon: Wallet },
+  { to: "/marketing", label: "Marketing", icon: Megaphone, badge: "Em breve" },
+  { to: "/estoque", label: "Estoque", icon: Package, badge: "Em breve" },
+  { to: "/equipe", label: "Equipe", icon: UsersRound, badge: "Em breve" },
+  { to: "/relatorios", label: "Relatórios", icon: BarChart3, badge: "Em breve" },
 ] as const;
 
 const bottomNavigation = [
-  { to: "/_auth/assistente", label: "Assistente IA", icon: Sparkles, highlight: true },
-  { to: "/_auth/configuracoes", label: "Configurações", icon: Settings },
-  { to: "/_auth/ajuda", label: "Ajuda", icon: HelpCircle },
+  { to: "/assistente", label: "Assistente IA", icon: Sparkles, highlight: true },
+  { to: "/configuracoes", label: "Configurações", icon: Settings },
+  { to: "/ajuda", label: "Ajuda", icon: HelpCircle },
 ] as const;
 
 const mobileNavigation = [
-  { to: "/_auth/", label: "Home", icon: LayoutGrid },
-  { to: "/_auth/agenda", label: "Agenda", icon: CalendarDays },
-  { to: "/_auth/clientes", label: "Clientes", icon: Users },
-  { to: "/_auth/crm", label: "CRM", icon: TrendingUp },
+  { to: "/", label: "Home", icon: LayoutGrid },
+  { to: "/agenda", label: "Agenda", icon: CalendarDays },
+  { to: "/clientes", label: "Clientes", icon: Users },
+  { to: "/crm", label: "CRM", icon: TrendingUp },
   { to: "#", label: "Mais", icon: MoreHorizontal, action: 'more' },
 ] as const;
 
@@ -83,7 +83,7 @@ export function AppShell({
                 key={to}
                 to={to}
                 disabled={!!badge}
-                activeOptions={{ exact: to === "/_auth/" }}
+                activeOptions={{ exact: to === "/" }}
                 className={cn(
                   "group flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors",
                   badge ? "opacity-60 cursor-not-allowed hover:bg-transparent" : "hover:bg-accent hover:text-accent-foreground text-muted-foreground"
@@ -255,7 +255,7 @@ export function AppShell({
           <Link
             key={label}
             to={to === '#' ? window.location.pathname : to}
-            activeOptions={{ exact: to === "/_auth/" }}
+            activeOptions={{ exact: to === "/" }}
             className={cn(
               "flex flex-col items-center justify-center gap-1 w-full h-full",
               action === 'more' ? "text-muted-foreground" : "text-muted-foreground hover:text-foreground"

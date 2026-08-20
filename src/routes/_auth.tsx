@@ -28,12 +28,12 @@ function AuthLayout() {
       // força o redirecionamento para o onboarding.
       // E evita loop caso já esteja no onboarding.
       if (window.location.pathname !== '/onboarding') {
-        navigate({ to: '/_auth/onboarding' });
+        navigate({ to: '/onboarding' });
       }
     } else if (!isLoading && organizations.length > 0) {
       // Se tiver organização e estiver na tela de onboarding, manda para a home
       if (window.location.pathname === '/onboarding') {
-        navigate({ to: '/_auth/' });
+        navigate({ to: '/' });
       }
     }
   }, [organizations, isLoading, navigate]);

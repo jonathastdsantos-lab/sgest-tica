@@ -305,7 +305,7 @@ function Onboarding() {
             </p>
             
             <button
-              onClick={() => navigate({ to: '/_auth/' })}
+              onClick={() => navigate({ to: '/' })}
               className="mt-8 inline-flex h-10 items-center justify-center gap-2 rounded-md bg-foreground px-8 text-sm font-medium text-background shadow transition-colors hover:bg-foreground/90"
             >
               <Sparkles className="size-4" />

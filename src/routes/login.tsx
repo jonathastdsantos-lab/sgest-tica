@@ -22,7 +22,7 @@ function Login() {
     if (error) {
       setError(error.message);
     } else {
-      navigate({ to: '/_auth/' });
+      navigate({ to: '/' });
     }
     setLoading(false);
   };
