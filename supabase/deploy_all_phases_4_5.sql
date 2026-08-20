@@ -54,10 +54,11 @@ DECLARE
 BEGIN
     FOREACH table_name IN ARRAY tables LOOP
         EXECUTE format('
+            DROP POLICY IF EXISTS "Users can access data of their organizations" ON public.%I;
             CREATE POLICY "Users can access data of their organizations" 
             ON public.%I FOR ALL 
             USING (public.user_has_org_access(organization_id));
-        ', table_name);
+        ', table_name, table_name);
     END LOOP;
 END;
 $$;
@@ -109,13 +110,10 @@ ALTER TABLE public.financial_transactions ENABLE ROW LEVEL SECURITY;
 -- RLS POLICIES (Fase 5)
 DO $$
 BEGIN
-    EXECUTE '
-        CREATE POLICY "Users can access data of their organizations" 
-        ON public.financial_transactions FOR ALL 
-        USING (public.user_has_org_access(organization_id));
-    ';
-EXCEPTION
-    WHEN duplicate_object THEN null;
+    DROP POLICY IF EXISTS "Users can access data of their organizations" ON public.financial_transactions;
+    CREATE POLICY "Users can access data of their organizations" 
+    ON public.financial_transactions FOR ALL 
+    USING (public.user_has_org_access(organization_id));
 END $$;
 
 -- Trigger to update 'updated_at' automatically (Fase 5)
