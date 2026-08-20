@@ -118,11 +118,11 @@ function AtendimentoWorkspace() {
     const { error } = await supabase.from('appointments').update({ status: 'completed' }).eq('id', id);
     if (!error) {
       toast.success('Atendimento finalizado com sucesso!');
-      navigate({ to: '/_auth/atendimentos' });
+      navigate({ to: '/atendimentos' });
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-muted-foreground">Carregando prontuário...</div>;
+  if (loading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Carregando prontuário...</div>;
   if (!apt) return <div className="p-8 text-center text-destructive">Agendamento não encontrado.</div>;
 
   return (
@@ -131,7 +131,7 @@ function AtendimentoWorkspace() {
       {/* Header */}
       <div className="flex items-center justify-between shrink-0 mb-6">
         <div className="flex items-center gap-4">
-          <Link to="/_auth/atendimentos" className="size-10 flex items-center justify-center rounded-full bg-surface border border-border hover:bg-accent transition-colors">
+          <Link to="/atendimentos" className="size-10 flex items-center justify-center rounded-full bg-surface border border-border hover:bg-accent transition-colors">
             <ArrowLeft className="size-5 text-muted-foreground" />
           </Link>
           <div>
@@ -148,7 +148,7 @@ function AtendimentoWorkspace() {
           <button 
             onClick={handleSave} 
             disabled={saving}
-            className="flex h-10 items-center justify-center gap-2 rounded-md bg-secondary text-secondary-foreground px-4 text-sm font-medium shadow-sm ring-1 ring-border transition-colors hover:bg-accent disabled:opacity-50"
+            className="flex h-10 items-center justify-center gap-2 rounded-md bg-accent text-accent-foreground px-4 text-sm font-medium transition-colors hover:bg-accent/80 disabled:opacity-50"
           >
             <Save className="size-4" />
             {saving ? 'Salvando...' : 'Salvar Rascunho'}
@@ -173,20 +173,20 @@ function AtendimentoWorkspace() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-left",
+                "w-full flex items-center gap-3 px-4 py-2.5 rounded-full text-sm transition-all text-left font-medium",
                 activeTab === tab.id 
-                  ? "bg-primary text-primary-foreground shadow-md" 
-                  : "bg-surface border border-border text-muted-foreground hover:bg-accent hover:text-foreground"
+                  ? "bg-accent text-primary font-semibold shadow-xs" 
+                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
               )}
             >
-              <tab.icon className={cn("size-5", activeTab === tab.id ? "text-primary-foreground/80" : "text-muted-foreground")} />
+              <tab.icon className={cn("size-4", activeTab === tab.id ? "text-primary" : "text-muted-foreground")} />
               {tab.label}
             </button>
           ))}
           
-          <div className="mt-auto panel p-4 bg-accent/30">
+          <div className="mt-auto panel p-4 bg-accent/20">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1">
-              <AlertCircle className="size-3" /> Dica Médica
+              <AlertCircle className="size-3.5 text-primary" /> Dica Médica
             </h4>
             <p className="text-xs text-muted-foreground leading-relaxed">
               O sistema salva automaticamente os rascunhos em background. Suas anotações clínicas estão protegidas pela LGPD.

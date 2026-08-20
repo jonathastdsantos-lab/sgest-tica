@@ -257,33 +257,33 @@ function Financeiro() {
 
       {/* KPIs */}
       <section className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl bg-surface p-5 ring-1 ring-border shadow-sm flex flex-col justify-between">
+        <div className="panel panel-accent p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-muted-foreground mb-4">
-            <span className="text-xs font-medium uppercase tracking-wider">Faturamento (Mês)</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Faturamento (Mês)</span>
             <Wallet className="size-4" />
           </div>
           <p className="text-2xl font-bold tracking-tight text-foreground">{brl(receitasPagas)}</p>
         </div>
 
-        <div className="rounded-2xl bg-surface p-5 ring-1 ring-border shadow-sm flex flex-col justify-between">
+        <div className="panel panel-accent p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-muted-foreground mb-4">
-            <span className="text-xs font-medium uppercase tracking-wider">A Receber</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">A Receber</span>
             <Activity className="size-4" />
           </div>
           <p className="text-2xl font-bold tracking-tight text-primary">{brl(aReceber)}</p>
         </div>
 
-        <div className="rounded-2xl bg-surface p-5 ring-1 ring-border shadow-sm flex flex-col justify-between">
+        <div className="panel panel-accent p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between text-muted-foreground mb-4">
-            <span className="text-xs font-medium uppercase tracking-wider">Despesas Pagas</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Despesas Pagas</span>
             <ArrowDownRight className="size-4" />
           </div>
           <p className="text-2xl font-bold tracking-tight text-destructive">{brl(despesasPagas)}</p>
         </div>
 
-        <div className="rounded-2xl bg-primary text-primary-foreground p-5 ring-1 ring-border shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-primary-foreground/70 mb-4">
-            <span className="text-xs font-medium uppercase tracking-wider">Lucro Líquido</span>
+        <div className="panel panel-accent p-5 flex flex-col justify-between bg-primary text-primary-foreground border-l-0">
+          <div className="flex items-center justify-between text-primary-foreground/80 mb-4">
+            <span className="text-xs font-semibold uppercase tracking-wider">Lucro Líquido</span>
             <TrendingUp className="size-4" />
           </div>
           <p className="text-2xl font-bold tracking-tight">{brl(lucro)}</p>
@@ -294,8 +294,8 @@ function Financeiro() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         
         {/* Gráfico Recharts */}
-        <section className="rounded-2xl bg-surface p-6 ring-1 ring-border lg:col-span-2 shadow-sm flex flex-col">
-          <h2 className="mb-6 text-sm font-semibold tracking-tight">Evolução do Fluxo de Caixa (6 meses)</h2>
+        <section className="panel p-6 lg:col-span-2 flex flex-col">
+          <h2 className="mb-6 text-sm font-semibold tracking-tight text-foreground">Evolução do Fluxo de Caixa (6 meses)</h2>
           <div className="flex-1 min-h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -315,19 +315,22 @@ function Financeiro() {
         </section>
 
         {/* Últimos Lançamentos */}
-        <aside className="rounded-2xl bg-surface p-6 ring-1 ring-border shadow-sm flex flex-col h-full max-h-[400px]">
+        <aside className="panel p-6 flex flex-col h-full max-h-[400px]">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-sm font-semibold tracking-tight">Últimos Lançamentos</h2>
-            <button className="text-xs text-primary hover:underline">Ver todos</button>
+            <h2 className="text-sm font-semibold tracking-tight text-foreground">Últimos Lançamentos</h2>
+            <button className="text-xs text-primary font-medium hover:underline">Ver todos</button>
           </div>
           
-          <div className="flex-1 overflow-y-auto pr-2 space-y-4">
+          <div className="flex-1 overflow-y-auto pr-2 space-y-3">
             {loading ? (
               <p className="text-sm text-muted-foreground text-center py-4">Carregando...</p>
             ) : transactions.length === 0 ? (
-              <div className="flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-border rounded-lg">
-                <DollarSign className="size-8 text-muted-foreground/50 mb-2" />
-                <p className="text-sm text-muted-foreground">Nenhuma transação registrada ainda.</p>
+              <div className="flex flex-col items-center justify-center text-center p-6 border border-dashed border-border rounded-xl">
+                <div className="size-12 rounded-full bg-accent flex items-center justify-center mb-3 text-muted-foreground">
+                  <DollarSign className="size-6" />
+                </div>
+                <p className="text-sm font-medium text-foreground">Nenhuma transação</p>
+                <p className="text-xs text-muted-foreground mt-1">Registre seu primeiro lançamento.</p>
               </div>
             ) : (
               transactions.slice(0, 10).map((t) => (

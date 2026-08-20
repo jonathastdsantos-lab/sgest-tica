@@ -138,29 +138,29 @@ function Clientes() {
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center">
-                      <div className="size-12 rounded-full bg-accent flex items-center justify-center mb-3">
-                        <Users className="size-6 text-muted-foreground" />
+                      <div className="size-14 rounded-full bg-accent flex items-center justify-center mb-3 text-muted-foreground">
+                        <Users className="size-6" />
                       </div>
-                      <p className="font-medium">Nenhum cliente encontrado</p>
-                      <p className="text-xs text-muted-foreground mt-1">Comece adicionando seu primeiro cliente.</p>
+                      <p className="font-semibold text-foreground">Nenhum cliente encontrado</p>
+                      <p className="text-sm text-muted-foreground mt-1">Comece adicionando seu primeiro cliente.</p>
                     </div>
                   </td>
                 </tr>
               ) : (
                 filteredClientes.map((cliente) => (
-                  <tr key={cliente.id} className="hover:bg-accent/50 transition-colors">
+                  <tr key={cliente.id} className="hover:bg-accent/40 transition-colors">
                     <td className="px-6 py-4">
-                      <Link to="/_auth/clientes/$id" params={{ id: cliente.id }} className="flex items-center gap-3 group">
-                        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      <Link to="/clientes/$id" params={{ id: cliente.id }} className="flex items-center gap-3 group">
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors font-semibold text-xs">
                           <User className="size-4" />
                         </div>
-                        <span className="font-medium text-foreground group-hover:text-primary transition-colors">{cliente.full_name}</span>
+                        <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{cliente.full_name}</span>
                       </Link>
                     </td>
                     <td className="px-6 py-4">
                       {cliente.phone ? (
                         <div className="flex items-center gap-2 text-muted-foreground">
-                          <Phone className="size-3" />
+                          <Phone className="size-3.5" />
                           <span>{cliente.phone}</span>
                         </div>
                       ) : (
@@ -169,8 +169,8 @@ function Clientes() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={cn(
-                        "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-                        cliente.status === 'active' ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
+                        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                        cliente.status === 'active' ? "bg-success/10 text-success" : "bg-accent text-muted-foreground"
                       )}>
                         {cliente.status === 'active' ? 'Ativo' : 'Inativo'}
                       </span>

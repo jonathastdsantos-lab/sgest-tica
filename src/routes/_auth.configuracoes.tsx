@@ -107,13 +107,13 @@ function Configuracoes() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left",
+                  "flex items-center gap-3 w-full px-4 py-2.5 rounded-full text-sm font-medium transition-all text-left",
                   activeTab === tab.id 
-                    ? "bg-primary text-primary-foreground shadow-sm" 
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                    ? "bg-accent text-primary font-semibold shadow-xs" 
+                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
                 )}
               >
-                <Icon className={cn("size-4", activeTab === tab.id ? "text-primary-foreground" : "text-muted-foreground")} />
+                <Icon className={cn("size-4", activeTab === tab.id ? "text-primary" : "text-muted-foreground")} />
                 {tab.label}
               </button>
             )
@@ -128,7 +128,7 @@ function Configuracoes() {
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-lg font-semibold">Procedimentos e Tratamentos</h2>
+                  <h2 className="text-lg font-semibold text-foreground">Procedimentos e Tratamentos</h2>
                   <p className="text-sm text-muted-foreground">Serviços que sua clínica oferece para agendamento.</p>
                 </div>
                 <button
@@ -143,27 +143,29 @@ function Configuracoes() {
               {loadingProcedures ? (
                 <div className="py-12 text-center text-muted-foreground">Carregando procedimentos...</div>
               ) : procedures.length === 0 ? (
-                <div className="py-12 text-center">
-                  <Syringe className="size-12 text-muted-foreground mx-auto mb-3 opacity-20" />
-                  <p className="font-medium">Nenhum procedimento cadastrado.</p>
-                  <p className="text-sm text-muted-foreground">Cadastre um tratamento para poder usar na Agenda.</p>
+                <div className="py-12 text-center flex flex-col items-center justify-center">
+                  <div className="size-14 rounded-full bg-accent flex items-center justify-center mb-3 text-muted-foreground">
+                    <Syringe className="size-6" />
+                  </div>
+                  <p className="font-semibold text-foreground">Nenhum procedimento cadastrado</p>
+                  <p className="text-sm text-muted-foreground mt-1">Cadastre um tratamento para poder usar na Agenda.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {procedures.map(proc => (
-                    <div key={proc.id} className="border border-border rounded-xl p-4 hover:border-primary/50 transition-colors">
+                    <div key={proc.id} className="panel p-4 hover:border-primary/40 transition-all shadow-xs">
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-medium text-foreground leading-tight">{proc.name}</h3>
+                        <h3 className="font-semibold text-foreground leading-tight">{proc.name}</h3>
                         <span className={cn(
                           "size-2 rounded-full mt-1.5 shrink-0",
                           proc.active ? "bg-success" : "bg-muted-foreground"
                         )} />
                       </div>
                       <div className="flex items-center justify-between mt-4">
-                        <span className="text-sm font-semibold text-primary">
+                        <span className="text-sm font-bold text-primary">
                           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(proc.price)}
                         </span>
-                        <span className="text-xs text-muted-foreground bg-accent px-2 py-1 rounded-md">
+                        <span className="text-xs font-medium text-accent-foreground bg-accent px-2.5 py-0.5 rounded-full">
                           {proc.duration_minutes} min
                         </span>
                       </div>

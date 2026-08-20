@@ -100,26 +100,28 @@ function Equipe() {
             Carregando equipe...
           </div>
         ) : professionals.length === 0 ? (
-          <div className="col-span-full flex flex-col items-center justify-center h-64 panel text-center">
-            <UsersRound className="size-10 text-muted-foreground opacity-50 mb-4" />
-            <p className="font-medium">Nenhum profissional encontrado</p>
+          <div className="col-span-full flex flex-col items-center justify-center p-12 panel text-center">
+            <div className="size-14 rounded-full bg-accent flex items-center justify-center mb-3 text-muted-foreground">
+              <UsersRound className="size-6" />
+            </div>
+            <h3 className="text-base font-semibold text-foreground">Nenhum profissional encontrado</h3>
             <p className="text-sm text-muted-foreground mt-1">Adicione o primeiro membro da sua equipe.</p>
           </div>
         ) : (
           professionals.map(prof => (
-            <div key={prof.id} className="panel p-5 relative overflow-hidden group">
+            <div key={prof.id} className="panel p-5 relative overflow-hidden group shadow-xs">
               <button className="absolute right-3 top-3 p-1.5 text-muted-foreground hover:bg-accent rounded-md opacity-0 group-hover:opacity-100 transition-all">
                 <MoreHorizontal className="size-4" />
               </button>
               
               <div className="flex items-center gap-4">
-                <div className="size-14 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                <div className="size-12 rounded-full bg-accent flex items-center justify-center text-primary shrink-0 font-semibold">
                   <User className="size-6" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground leading-tight">{prof.name}</h3>
-                  <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
-                    <ShieldCheck className="size-3" />
+                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5 font-medium">
+                    <ShieldCheck className="size-3.5 text-primary" />
                     {prof.role}
                   </p>
                 </div>
@@ -127,13 +129,13 @@ function Equipe() {
 
               <div className="mt-5 pt-4 border-t border-border flex items-center justify-between">
                 <span className={cn(
-                  "px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider",
-                  prof.status === 'active' ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
+                  "px-2.5 py-0.5 rounded-full text-xs font-semibold",
+                  prof.status === 'active' ? "bg-success/10 text-success" : "bg-accent text-muted-foreground"
                 )}>
                   {prof.status === 'active' ? 'Ativo' : 'Inativo'}
                 </span>
                 
-                <button className="text-xs font-medium text-primary hover:underline">
+                <button className="text-xs font-semibold text-primary hover:underline">
                   Ver Agenda
                 </button>
               </div>

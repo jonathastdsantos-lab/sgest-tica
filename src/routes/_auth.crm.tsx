@@ -172,31 +172,31 @@ function Crm() {
               const stageValue = stageLeads.reduce((acc, l) => acc + (l.value || 0), 0);
 
               return (
-                <div key={stage.id} className="flex flex-col w-[320px] shrink-0 bg-accent/30 rounded-xl overflow-hidden">
+                <div key={stage.id} className="flex flex-col w-[320px] shrink-0 panel bg-accent/20 overflow-hidden">
                   
-                  <div className="p-4 border-b border-border bg-surface/50 backdrop-blur-sm">
+                  <div className="p-4 border-b border-border bg-surface">
                     <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-semibold text-sm">{stage.name}</h3>
-                      <span className="text-xs font-medium bg-accent px-2 py-0.5 rounded-full text-muted-foreground">
+                      <h3 className="font-semibold text-sm text-foreground">{stage.name}</h3>
+                      <span className="text-xs font-semibold bg-accent text-primary px-2.5 py-0.5 rounded-full">
                         {stageLeads.length}
                       </span>
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground font-medium">
                       {formatCurrency(stageValue)}
                     </div>
                   </div>
 
-                  <div className="flex-1 p-2 space-y-2 overflow-y-auto">
+                  <div className="flex-1 p-3 space-y-3 overflow-y-auto">
                     {stageLeads.map(lead => (
-                      <div key={lead.id} className="bg-surface border border-border p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-grab group relative">
+                      <div key={lead.id} className="panel p-4 hover:border-primary/40 transition-all cursor-grab group relative shadow-xs">
                         
-                        <button className="absolute right-2 top-2 p-1 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:bg-accent rounded-md">
+                        <button className="absolute right-3 top-3 p-1 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:bg-accent rounded-md">
                           <MoreHorizontal className="size-4" />
                         </button>
 
-                        <div className="text-xs font-medium text-primary mb-1">{lead.title}</div>
-                        <div className="font-semibold text-sm mb-2">{lead.clients?.full_name}</div>
-                        <div className="text-xs font-medium text-muted-foreground">
+                        <div className="text-xs font-semibold text-primary mb-1">{lead.title}</div>
+                        <div className="font-semibold text-sm text-foreground mb-2">{lead.clients?.full_name}</div>
+                        <div className="text-xs font-semibold text-muted-foreground">
                           {formatCurrency(lead.value)}
                         </div>
                       </div>

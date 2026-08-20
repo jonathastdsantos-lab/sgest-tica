@@ -180,12 +180,12 @@ function Assistant() {
   ];
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] flex-col bg-surface rounded-xl border border-border shadow-sm overflow-hidden animate-in fade-in duration-500 relative">
+    <div className="panel flex h-[calc(100vh-8rem)] flex-col overflow-hidden animate-in fade-in duration-500 relative">
       
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border p-4 bg-primary/5 shrink-0 z-10">
+      <div className="flex items-center justify-between border-b border-border p-4 bg-accent/30 shrink-0 z-10">
         <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+          <div className="flex size-10 items-center justify-center rounded-full bg-accent text-primary shrink-0">
             <Sparkles className="size-5" />
           </div>
           <div>
@@ -239,14 +239,14 @@ function Assistant() {
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center h-full">
-            <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
-              <Bot className="size-8" />
+            <div className="size-14 rounded-full bg-accent flex items-center justify-center text-primary mb-4 font-semibold">
+              <Bot className="size-7" />
             </div>
-            <h1 className="text-2xl font-display font-medium tracking-tight mb-2">
+            <h1 className="text-2xl font-display font-medium tracking-tight mb-2 text-foreground">
               Olá, {firstName}.
             </h1>
-            <p className="text-muted-foreground max-w-md mb-8">
-              A inteligência artificial tem acesso direto aos dados do seu Supabase. 
+            <p className="text-muted-foreground text-sm max-w-md mb-8">
+              A inteligência artificial tem acesso direto aos dados da sua clínica. 
               Experimente me perguntar sobre a agenda ou sobre os leads.
             </p>
 
@@ -256,7 +256,7 @@ function Assistant() {
                 <button
                   key={i}
                   onClick={() => handleSubmit(undefined, suggestion)}
-                  className="text-left px-4 py-3 rounded-lg border border-border bg-background hover:bg-accent hover:border-primary/30 transition-all group shadow-sm"
+                  className="text-left p-4 panel hover:border-primary/40 transition-all group shadow-xs"
                 >
                   <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
                     {suggestion}

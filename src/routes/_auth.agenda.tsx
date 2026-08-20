@@ -357,12 +357,12 @@ function Agenda() {
                             draggable
                             onDragStart={(e) => handleDragStart(e, apt.id)}
                             onDragEnd={handleDragEnd}
-                            className="absolute left-1 right-1 z-10 p-2 rounded-md shadow-sm border border-primary/20 bg-primary/10 overflow-hidden cursor-move hover:ring-1 hover:ring-primary transition-all flex flex-col group"
+                            className="absolute left-1 right-1 z-10 p-2 rounded-lg border border-primary/20 bg-accent/80 text-foreground overflow-hidden cursor-move hover:ring-1 hover:ring-primary transition-all flex flex-col group shadow-xs"
                             style={{ top: topPx, height: heightPx - 2 }}
                           >
                             <div className="flex items-center justify-between mb-1">
                               <span className="text-[10px] font-semibold text-primary">{start.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</span>
-                              <GripVertical className="size-3 text-primary/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              <GripVertical className="size-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
                             <span className="text-xs font-semibold text-foreground truncate">{apt.clients?.full_name}</span>
                             <span className="text-[10px] text-muted-foreground truncate">{apt.procedures?.name || 'Consulta'}</span>
@@ -382,10 +382,10 @@ function Agenda() {
           {loading ? (
              <div className="flex items-center justify-center text-muted-foreground mt-10">Carregando...</div>
           ) : appointments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center text-center p-6 mt-10">
-              <div className="size-16 rounded-full bg-accent flex items-center justify-center mb-4 text-muted-foreground"><Calendar className="size-8" /></div>
-              <h3 className="text-base font-medium">Nenhum agendamento</h3>
-              <p className="text-sm text-muted-foreground mt-1">Sua agenda está livre.</p>
+            <div className="flex flex-col items-center justify-center text-center p-8 mt-10">
+              <div className="size-14 rounded-full bg-accent flex items-center justify-center mb-3 text-muted-foreground"><CalendarDays className="size-6" /></div>
+              <h3 className="text-base font-semibold text-foreground">Nenhum agendamento hoje</h3>
+              <p className="text-sm text-muted-foreground mt-1">Sua agenda está livre nesta data.</p>
             </div>
           ) : (
             <div className="divide-y divide-border">

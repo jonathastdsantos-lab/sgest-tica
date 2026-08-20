@@ -120,7 +120,7 @@ function ClientePerfil() {
     <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto">
       
       {/* Back navigation */}
-      <Link to="/_auth/clientes" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+      <Link to="/clientes" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
         <ArrowLeft className="size-4" />
         Voltar para clientes
       </Link>
@@ -128,15 +128,15 @@ function ClientePerfil() {
       {/* Header Profile */}
       <div className="panel p-6 flex flex-col md:flex-row gap-6 md:items-center justify-between">
         <div className="flex items-center gap-5">
-          <div className="size-20 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-            <User className="size-10" />
+          <div className="size-16 rounded-full bg-accent flex items-center justify-center text-primary shrink-0 font-semibold">
+            <User className="size-8" />
           </div>
           <div>
             <h1 className="text-2xl font-display font-semibold tracking-tight text-foreground flex items-center gap-3">
               {client.full_name}
               <span className={cn(
-                "px-2 py-0.5 text-xs font-medium rounded-full",
-                client.status === 'active' ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
+                "px-2.5 py-0.5 text-xs font-semibold rounded-full",
+                client.status === 'active' ? "bg-success/10 text-success" : "bg-accent text-muted-foreground"
               )}>
                 {client.status === 'active' ? 'Ativo' : 'Inativo'}
               </span>
@@ -157,7 +157,7 @@ function ClientePerfil() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button className="flex h-9 items-center justify-center gap-2 rounded-md bg-secondary text-secondary-foreground px-4 text-sm font-medium shadow-sm ring-1 ring-border transition-colors hover:bg-accent">
+          <button className="flex h-9 items-center justify-center gap-2 rounded-md bg-accent text-accent-foreground px-4 text-sm font-medium transition-colors hover:bg-accent/80">
             <MessageSquare className="size-4 text-[#25D366]" />
             WhatsApp
           </button>
@@ -165,51 +165,51 @@ function ClientePerfil() {
             <CalendarDays className="size-4" />
             Agendar
           </button>
-          <button className="flex size-9 items-center justify-center rounded-md bg-secondary text-secondary-foreground shadow-sm ring-1 ring-border transition-colors hover:bg-accent">
+          <button className="flex size-9 items-center justify-center rounded-md bg-accent text-accent-foreground transition-colors hover:bg-accent/80">
             <MoreHorizontal className="size-4" />
           </button>
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards (panel + panel-accent) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        <div className="panel p-5 space-y-2">
+        <div className="panel panel-accent p-5 space-y-2">
           <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-sm font-medium">Total Gasto</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Total Gasto</span>
             <DollarSign className="size-4" />
           </div>
-          <div className="text-2xl font-bold">
+          <div className="text-2xl font-bold text-foreground">
             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalGasto)}
           </div>
         </div>
 
-        <div className="panel p-5 space-y-2">
+        <div className="panel panel-accent p-5 space-y-2">
           <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-sm font-medium">Última Visita</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Última Visita</span>
             <CalendarDays className="size-4" />
           </div>
-          <div className="text-2xl font-bold">
+          <div className="text-2xl font-bold text-foreground">
             {ultimaVisita ? ultimaVisita.toLocaleDateString('pt-BR') : '—'}
           </div>
         </div>
 
-        <div className="panel p-5 space-y-2">
+        <div className="panel panel-accent p-5 space-y-2">
           <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-sm font-medium">Próximo Atendimento</span>
-            <Clock className="size-4 text-primary" />
+            <span className="text-xs font-semibold uppercase tracking-wider">Próximo Atendimento</span>
+            <Activity className="size-4 text-primary" />
           </div>
           <div className="text-2xl font-bold text-primary">
             {proximaVisita ? proximaVisita.toLocaleDateString('pt-BR') : '—'}
           </div>
         </div>
 
-        <div className="panel p-5 space-y-2">
+        <div className="panel panel-accent p-5 space-y-2">
           <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-sm font-medium">Pacotes Ativos</span>
-            <Activity className="size-4" />
+            <span className="text-xs font-semibold uppercase tracking-wider">Pacotes Ativos</span>
+            <Star className="size-4" />
           </div>
-          <div className="text-2xl font-bold">0</div>
+          <div className="text-2xl font-bold text-foreground">0</div>
         </div>
 
       </div>
