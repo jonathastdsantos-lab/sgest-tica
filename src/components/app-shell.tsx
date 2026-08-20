@@ -1,133 +1,259 @@
-import { Link } from "@tanstack/react-router";
-import { CalendarDays, ChevronsUpDown, LayoutGrid, Plus, Sparkles, Users, Wallet } from "lucide-react";
-import { useState, type ReactNode } from "react";
-
-import avatar from "@/assets/dra-beatriz.jpg";
-import { useTenant } from "@/lib/tenant";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { 
+  CalendarDays, ChevronsUpDown, LayoutGrid, Plus, Sparkles, Users, 
+  Wallet, TrendingUp, Stethoscope, Megaphone, Package, UsersRound, 
+  BarChart3, Settings, HelpCircle, Search, Bell, MoreHorizontal, LogOut, FileText, ChevronDown
+} from "lucide-react";
+import { useState, type ReactNode, useEffect, useRef } from "react";
+import { useTenant } from "@/hooks/use-tenant";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
 
-const navegacao = [
-  { to: "/", label: "Painel Principal", icon: LayoutGrid },
-  { to: "/agenda", label: "Agenda Semanal", icon: CalendarDays },
-  { to: "/pacientes", label: "Pacientes", icon: Users },
-  { to: "/financeiro", label: "Financeiro", icon: Wallet },
+const navigation = [
+  { to: "/_auth/", label: "Visão Geral", icon: LayoutGrid },
+  { to: "/_auth/agenda", label: "Agenda", icon: CalendarDays },
+  { to: "/_auth/clientes", label: "Clientes", icon: Users },
+  { to: "/_auth/crm", label: "CRM", icon: TrendingUp },
+  { to: "/_auth/atendimentos", label: "Atendimentos", icon: Stethoscope, badge: "Em breve" },
+  { to: "/_auth/financeiro", label: "Financeiro", icon: Wallet, badge: "Em breve" },
+  { to: "/_auth/marketing", label: "Marketing", icon: Megaphone, badge: "Em breve" },
+  { to: "/_auth/estoque", label: "Estoque", icon: Package, badge: "Em breve" },
+  { to: "/_auth/equipe", label: "Equipe", icon: UsersRound, badge: "Em breve" },
+  { to: "/_auth/relatorios", label: "Relatórios", icon: BarChart3, badge: "Em breve" },
+] as const;
+
+const bottomNavigation = [
+  { to: "/_auth/assistente", label: "Assistente IA", icon: Sparkles, highlight: true },
+  { to: "/_auth/configuracoes", label: "Configurações", icon: Settings },
+  { to: "/_auth/ajuda", label: "Ajuda", icon: HelpCircle },
+] as const;
+
+const mobileNavigation = [
+  { to: "/_auth/", label: "Home", icon: LayoutGrid },
+  { to: "/_auth/agenda", label: "Agenda", icon: CalendarDays },
+  { to: "/_auth/clientes", label: "Clientes", icon: Users },
+  { to: "/_auth/crm", label: "CRM", icon: TrendingUp },
+  { to: "#", label: "Mais", icon: MoreHorizontal, action: 'more' },
 ] as const;
 
 export function AppShell({
-  titulo,
-  acao,
   children,
 }: {
-  titulo: string;
-  acao?: string;
   children: ReactNode;
 }) {
   const { tenant, tenants, setTenantId } = useTenant();
-  const [aberto, setAberto] = useState(false);
+  const [unitMenuOpen, setUnitMenuOpen] = useState(false);
+  const [newMenuOpen, setNewMenuOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: '/login' });
+  };
+
+  const getInitials = (name?: string) => {
+    if (!name) return "SG";
+    return name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+  };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
+    <div className="min-h-screen bg-background text-foreground flex">
+      {/* Desktop Sidebar (Fixed) */}
+      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border bg-surface lg:flex">
+        {/* Logo */}
         <div className="flex items-center gap-3 p-6">
           <div className="flex size-8 items-center justify-center rounded-md bg-primary">
-            <span className="text-xs font-medium text-primary-foreground">SG</span>
+            <span className="text-xs font-bold text-primary-foreground">SG</span>
           </div>
-          <span className="font-medium tracking-tight">SG Estética</span>
+          <span className="font-semibold tracking-tight">SGEstética</span>
         </div>
 
-        <nav className="flex-1 space-y-1 px-4">
-          {navegacao.map(({ to, label, icon: Icone }) => (
-            <Link
-              key={to}
-              to={to}
-              activeOptions={{ exact: to === "/" }}
-              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent"
-              activeProps={{ className: "bg-sidebar-accent font-medium text-sidebar-foreground" }}
-            >
-              <Icone className="size-4 shrink-0" strokeWidth={1.75} />
-              {label}
-            </Link>
-          ))}
-        </nav>
+        {/* Scrollable Navigation */}
+        <div className="flex-1 overflow-y-auto px-4 py-2 space-y-6">
+          <nav className="space-y-1">
+            {navigation.map(({ to, label, icon: Icon, badge }) => (
+              <Link
+                key={to}
+                to={to}
+                disabled={!!badge}
+                activeOptions={{ exact: to === "/_auth/" }}
+                className={cn(
+                  "group flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors",
+                  badge ? "opacity-60 cursor-not-allowed hover:bg-transparent" : "hover:bg-accent hover:text-accent-foreground text-muted-foreground"
+                )}
+                activeProps={{ className: "bg-accent font-medium text-foreground" }}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon className="size-4 shrink-0" strokeWidth={2} />
+                  {label}
+                </div>
+                {badge && (
+                  <span className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground border border-border px-1.5 py-0.5 rounded-sm">
+                    {badge}
+                  </span>
+                )}
+              </Link>
+            ))}
+          </nav>
 
-        <div className="relative mt-auto border-t border-sidebar-border p-4">
-          <button
-            type="button"
-            onClick={() => setAberto((v) => !v)}
-            className="flex w-full items-center gap-3 rounded-md p-2 text-left transition-colors hover:bg-sidebar-accent"
-          >
-            <img
-              src={avatar}
-              alt={tenant.responsavel}
-              loading="lazy"
-              width={512}
-              height={512}
-              className="size-8 rounded-full object-cover ring-1 ring-border"
-            />
-            <span className="flex min-w-0 flex-col">
-              <span className="truncate text-xs font-medium">{tenant.unidade}</span>
-              <span className="truncate text-[10px] text-muted-foreground">{tenant.responsavel}</span>
-            </span>
-            <ChevronsUpDown className="ml-auto size-3.5 text-muted-foreground" />
-          </button>
+          <div className="h-px bg-border" />
 
-          {aberto ? (
-            <div className="absolute bottom-20 left-4 right-4 overflow-hidden rounded-md bg-surface shadow-lg ring-1 ring-border">
-              {tenants.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => {
-                    setTenantId(t.id);
-                    setAberto(false);
-                  }}
-                  className={cn(
-                    "flex w-full flex-col px-3 py-2 text-left transition-colors hover:bg-sidebar-accent",
-                    t.id === tenant.id && "bg-sidebar-accent",
-                  )}
-                >
-                  <span className="text-xs font-medium">{t.unidade}</span>
-                  <span className="text-[10px] text-muted-foreground">{t.cidade}</span>
-                </button>
-              ))}
-            </div>
-          ) : null}
+          <nav className="space-y-1">
+            {bottomNavigation.map(({ to, label, icon: Icon, highlight }) => (
+              <Link
+                key={to}
+                to={to}
+                activeOptions={{ exact: true }}
+                className={cn(
+                  "group flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                  highlight ? "text-primary hover:bg-primary/5" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                )}
+                activeProps={{ className: highlight ? "bg-primary/10 font-medium" : "bg-accent font-medium text-foreground" }}
+              >
+                <Icon className={cn("size-4 shrink-0", highlight && "text-primary")} strokeWidth={2} />
+                {label}
+              </Link>
+            ))}
+          </nav>
         </div>
       </aside>
 
-      <div className="lg:ml-64">
-        <header className="flex h-16 items-center justify-between border-b border-border bg-surface px-6 md:px-8">
-          <h1 className="text-balance font-display text-xl tracking-tight">{titulo}</h1>
-          <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 rounded-md bg-secondary px-3 py-2 text-sm ring-1 ring-border transition-colors hover:bg-accent">
-              <Plus className="size-4" strokeWidth={1.75} />
-              <span className="hidden sm:inline">{acao ?? "Nova Consulta"}</span>
-            </button>
+      {/* Main Content Area */}
+      <div className="flex flex-1 flex-col lg:pl-64 pb-16 lg:pb-0">
+        
+        {/* Top Header */}
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-surface/80 backdrop-blur-md px-4 sm:px-6 lg:px-8">
+          
+          {/* Left: Unit Selector */}
+          <div className="flex items-center relative">
             <button
-              aria-label="Assistente inteligente"
-              className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground transition-opacity hover:opacity-90"
+              onClick={() => setUnitMenuOpen(!unitMenuOpen)}
+              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium hover:bg-accent transition-colors"
             >
-              <Sparkles className="size-4" strokeWidth={1.75} />
+              <span className="truncate max-w-[120px] sm:max-w-[200px]">{tenant?.unidade || "Carregando..."}</span>
+              <ChevronsUpDown className="size-3.5 text-muted-foreground" />
             </button>
+
+            {unitMenuOpen && (
+              <div className="absolute top-full left-0 mt-1 w-56 rounded-md border border-border bg-popover p-1 shadow-lg z-50">
+                {tenants.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => { setTenantId(t.id); setUnitMenuOpen(false); }}
+                    className={cn(
+                      "flex w-full flex-col items-start rounded-sm px-2 py-1.5 text-sm hover:bg-accent",
+                      t.id === tenant?.id && "bg-accent"
+                    )}
+                  >
+                    <span className="font-medium">{t.unidade}</span>
+                    <span className="text-xs text-muted-foreground">{t.cidade} - {t.estado}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Center: Global Search */}
+          <div className="hidden flex-1 max-w-md mx-4 md:flex items-center">
+            <div className="relative w-full">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+              <input 
+                type="text" 
+                placeholder="Buscar cliente, telefone, procedimento..." 
+                className="h-9 w-full rounded-full border border-input bg-background/50 pl-9 pr-4 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Right: Actions */}
+          <div className="flex items-center gap-2 sm:gap-4 relative">
+            {/* Quick Action Button */}
+            <div className="relative">
+              <button
+                onClick={() => setNewMenuOpen(!newMenuOpen)}
+                className="flex h-9 items-center gap-2 rounded-full bg-primary pl-2.5 pr-3.5 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
+              >
+                <div className="flex size-5 items-center justify-center rounded-full bg-primary-foreground/20">
+                  <Plus className="size-3.5" />
+                </div>
+                <span className="hidden sm:inline">Novo</span>
+              </button>
+              
+              {newMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 rounded-md border border-border bg-popover p-1 shadow-lg z-50 animate-in fade-in zoom-in-95 duration-100">
+                  <button onClick={() => setNewMenuOpen(false)} className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"><CalendarDays className="size-4 text-muted-foreground"/> Novo agendamento</button>
+                  <button onClick={() => setNewMenuOpen(false)} className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"><Users className="size-4 text-muted-foreground"/> Novo cliente</button>
+                  <button onClick={() => setNewMenuOpen(false)} className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"><TrendingUp className="size-4 text-muted-foreground"/> Novo lead</button>
+                  <div className="h-px bg-border my-1" />
+                  <button disabled className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm opacity-50 cursor-not-allowed"><Wallet className="size-4 text-muted-foreground"/> Nova despesa</button>
+                </div>
+              )}
+            </div>
+
+            {/* Notifications */}
+            <button className="flex size-9 items-center justify-center rounded-full hover:bg-accent transition-colors relative">
+              <Bell className="size-5 text-muted-foreground" />
+              <span className="absolute top-2 right-2.5 size-2 rounded-full bg-destructive border-2 border-surface" />
+            </button>
+
+            {/* Avatar / Account */}
+            <div className="relative ml-1">
+              <button 
+                onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+                className="flex size-9 items-center justify-center rounded-full bg-accent ring-1 ring-border transition-transform hover:scale-105"
+              >
+                <span className="text-xs font-semibold text-foreground">
+                  {getInitials(tenant?.responsavel)}
+                </span>
+              </button>
+
+              {accountMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-56 rounded-md border border-border bg-popover p-1 shadow-lg z-50 animate-in fade-in zoom-in-95 duration-100">
+                  <div className="px-2 py-2 border-b border-border mb-1">
+                    <p className="text-sm font-medium">{tenant?.responsavel}</p>
+                    <p className="text-xs text-muted-foreground">{tenant?.nome}</p>
+                  </div>
+                  <button onClick={() => setAccountMenuOpen(false)} className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"><Settings className="size-4 text-muted-foreground"/> Minha Conta</button>
+                  <button onClick={handleLogout} className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10 mt-1"><LogOut className="size-4"/> Sair</button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
-        <nav className="flex gap-1 overflow-x-auto border-b border-border bg-surface px-4 py-2 lg:hidden">
-          {navegacao.map(({ to, label }) => (
-            <Link
-              key={to}
-              to={to}
-              activeOptions={{ exact: to === "/" }}
-              className="whitespace-nowrap rounded-md px-3 py-1.5 text-xs text-muted-foreground"
-              activeProps={{ className: "bg-sidebar-accent font-medium text-foreground" }}
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="mx-auto max-w-7xl px-6 py-10 md:px-8">{children}</div>
+        {/* Content */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          <div className="mx-auto max-w-7xl">
+            {children}
+          </div>
+        </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-border bg-surface/90 backdrop-blur-md pb-safe lg:hidden">
+        {mobileNavigation.map(({ to, label, icon: Icon, action }) => (
+          <Link
+            key={label}
+            to={to === '#' ? window.location.pathname : to}
+            activeOptions={{ exact: to === "/_auth/" }}
+            className={cn(
+              "flex flex-col items-center justify-center gap-1 w-full h-full",
+              action === 'more' ? "text-muted-foreground" : "text-muted-foreground hover:text-foreground"
+            )}
+            activeProps={{ className: "text-foreground font-medium" }}
+            onClick={(e) => {
+              if (action === 'more') {
+                e.preventDefault();
+                // Opcional: Abrir um menu drawer
+              }
+            }}
+          >
+            <Icon className="size-5" />
+            <span className="text-[10px]">{label}</span>
+          </Link>
+        ))}
+      </nav>
     </div>
   );
 }

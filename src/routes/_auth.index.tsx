@@ -4,7 +4,7 @@ import { AppShell } from "@/components/app-shell";
 import { agendaHoje, brl, historicoRecente } from "@/lib/clinic-data";
 import { useTenant } from "@/lib/tenant";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_auth/")({
   head: () => ({
     meta: [
       { title: "Painel de Gestão | SG Estética" },
@@ -20,75 +20,25 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
-  component: Painel,
+  component: Dashboard,
 });
 
-const kpis = [
-  {
-    rotulo: "Faturamento Mensal",
-    valor: "R$ 42.850,00",
-    delta: "+12.4%",
-    positivo: true,
-    nota: "Comparado ao mesmo período do mês anterior.",
-  },
-  {
-    rotulo: "Ocupação de Sala",
-    valor: "86%",
-    delta: "Normal",
-    positivo: false,
-    nota: "Média de 7.5 procedimentos por dia por sala.",
-  },
-  {
-    rotulo: "Taxa de No-Show",
-    valor: "4.2%",
-    delta: "-2.1%",
-    positivo: true,
-    nota: "Queda atribuída aos lembretes automáticos via IA.",
-  },
-];
-
-function Painel() {
+function Dashboard() {
   const { tenant } = useTenant();
+  
+  const [appointmentsCount, setAppointmentsCount] = useState(0);
+  const [leadsCount, setLeadsCount] = useState(0);
+  const [todaysAgenda, setTodaysAgenda] = useState<any[]>([]);
+  const [crmStats, setCrmStats] = useState({ open: 0, won: 0 });
+  const [loading, setLoading] = useState(true);
+
+  // Formatters
+  const firstName = tenant?.responsavel?.split(' ')[0] || 'Doutor(a)';
+  const today = new Intl.DateTimeFormat('pt-BR', { 
+    weekday: 'long', day: 'numeric', month: 'long' 
+  }).format(new Date());
 
   return (
-    <AppShell titulo="Painel de Gestão">
-      <section className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-3">
-        {kpis.map((kpi) => (
-          <div key={kpi.rotulo} className="rounded-2xl bg-surface p-6 ring-1 ring-border">
-            <span className="text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
-              {kpi.rotulo}
-            </span>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl font-medium tracking-tight">{kpi.valor}</span>
-              <span className={kpi.positivo ? "text-xs text-success" : "text-xs text-muted-foreground"}>
-                {kpi.delta}
-              </span>
-            </div>
-            <p className="mt-1 max-w-[48ch] text-pretty text-xs text-muted-foreground">{kpi.nota}</p>
-          </div>
-        ))}
-      </section>
-
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <section className="space-y-4 lg:col-span-2">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-medium tracking-tight">Agenda de Hoje</h2>
-            <span className="text-xs text-muted-foreground">{tenant.unidade}</span>
-          </div>
-
-          <div className="relative space-y-8 border-l border-border pl-8">
-            {agendaHoje.map((item) => {
-              const confirmado = item.status === "confirmado";
-              return (
-                <div key={item.id} className="relative">
-                  <div
-                    className={
-                      "absolute -left-[37px] top-1 size-4 rounded-full bg-background ring-4 ring-background " +
-                      (confirmado ? "border border-primary" : "border border-input")
-                    }
-                  />
-                  <div
-                    className={
                       "flex flex-col justify-between rounded-xl bg-surface p-5 ring-1 ring-border sm:flex-row sm:items-center " +
                       (confirmado ? "" : "opacity-60")
                     }
