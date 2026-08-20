@@ -15,7 +15,7 @@ const navigation = [
   { to: "/_auth/clientes", label: "Clientes", icon: Users },
   { to: "/_auth/crm", label: "CRM", icon: TrendingUp },
   { to: "/_auth/atendimentos", label: "Atendimentos", icon: Stethoscope },
-  { to: "/_auth/financeiro", label: "Financeiro", icon: Wallet, badge: "Em breve" },
+  { to: "/_auth/financeiro", label: "Financeiro", icon: Wallet },
   { to: "/_auth/marketing", label: "Marketing", icon: Megaphone, badge: "Em breve" },
   { to: "/_auth/estoque", label: "Estoque", icon: Package, badge: "Em breve" },
   { to: "/_auth/equipe", label: "Equipe", icon: UsersRound, badge: "Em breve" },
