@@ -66,11 +66,12 @@ function Register() {
         {/* Abstract Background Element para dar ar sofisticado */}
         <div className="absolute -bottom-24 -right-24 size-96 rounded-full bg-primary/5 blur-3xl" />
         
-        <div className="relative z-10 flex items-center gap-2">
-          <div className="flex size-8 items-center justify-center rounded bg-primary text-primary-foreground">
-            <span className="text-xs font-bold">SG</span>
-          </div>
-          <span className="text-lg font-medium tracking-tight">SGEstética</span>
+        <div className="relative z-10 flex items-center gap-3">
+          <img 
+            src="/logo-horizontal.png" 
+            alt="SG Estética Logo" 
+            className="h-12 object-contain" 
+          />
         </div>
 
         <div className="relative z-10 space-y-6">
@@ -91,11 +92,17 @@ function Register() {
       <div className="flex flex-1 flex-col justify-center px-6 sm:px-12 md:px-24">
         
         {/* Logo visível apenas no mobile */}
-        <div className="mb-12 flex items-center gap-2 lg:hidden">
-          <div className="flex size-8 items-center justify-center rounded bg-primary text-primary-foreground">
-            <span className="text-xs font-bold">SG</span>
-          </div>
-          <span className="text-lg font-medium tracking-tight">SGEstética</span>
+        <div className="mb-8 flex items-center gap-3 lg:hidden">
+          <img 
+            src="/logo-icon.png" 
+            alt="SG Estética Ícone" 
+            className="size-10 rounded-full object-cover shadow-sm ring-1 ring-border shrink-0" 
+          />
+          <img 
+            src="/logo-horizontal.png" 
+            alt="SG Estética Logo" 
+            className="h-8 object-contain max-w-[160px]" 
+          />
         </div>
 
         <div className="w-full max-w-sm">

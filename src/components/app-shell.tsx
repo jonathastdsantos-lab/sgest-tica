@@ -61,12 +61,18 @@ export function AppShell({
     <div className="min-h-screen bg-background text-foreground flex">
       {/* Desktop Sidebar (Fixed) */}
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border bg-surface lg:flex">
-        {/* Logo */}
-        <div className="flex items-center gap-3 p-6">
-          <div className="flex size-8 items-center justify-center rounded-md bg-primary">
-            <span className="text-xs font-bold text-primary-foreground">SG</span>
-          </div>
-          <span className="font-semibold tracking-tight">SGEstética</span>
+        {/* Logo oficial */}
+        <div className="flex items-center gap-3 p-5 border-b border-border/50">
+          <img 
+            src="/logo-icon.png" 
+            alt="SG Estética Ícone" 
+            className="size-9 rounded-full object-cover shadow-sm ring-1 ring-border shrink-0" 
+          />
+          <img 
+            src="/logo-horizontal.png" 
+            alt="SG Estética" 
+            className="h-8 object-contain max-w-[140px]" 
+          />
         </div>
 
         {/* Scrollable Navigation */}
