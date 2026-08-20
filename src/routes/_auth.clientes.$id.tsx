@@ -35,7 +35,7 @@ const TABS = [
   { id: 'visao-geral', label: 'Visão Geral' },
   { id: 'agenda', label: 'Agenda' },
   { id: 'tratamentos', label: 'Tratamentos', disabled: true },
-  { id: 'prontuario', label: 'Prontuário', disabled: true },
+  { id: 'prontuario', label: 'Prontuário' },
   { id: 'fotos', label: 'Fotos', disabled: true },
   { id: 'financeiro', label: 'Financeiro', disabled: true },
 ];
@@ -46,6 +46,7 @@ function ClientePerfil() {
   
   const [client, setClient] = useState<ClientProfile | null>(null);
   const [appointments, setAppointments] = useState<AppointmentEvent[]>([]);
+  const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('visao-geral');
 
@@ -76,6 +77,19 @@ function ClientePerfil() {
         .order('start_at', { ascending: false });
 
       if (aptData) setAppointments(aptData as any);
+
+      // Fetch Medical Records
+      const { data: recordsData } = await supabase
+        .from('medical_records')
+        .select(`
+          id, created_at, content, record_type,
+          professionals(name),
+          appointments(start_at, procedures(name))
+        `)
+        .eq('client_id', id)
+        .order('created_at', { ascending: false });
+        
+      if (recordsData) setMedicalRecords(recordsData);
 
       setLoading(false);
     };
@@ -297,6 +311,45 @@ function ClientePerfil() {
             <CalendarDays className="size-12 mx-auto mb-3 opacity-20" />
             <p className="font-medium text-foreground">Agenda do Cliente</p>
             <p className="text-sm mt-1">Visualização detalhada dos horários futuros e passados deste cliente será listada aqui.</p>
+          </div>
+        )}
+
+        {activeTab === 'prontuario' && (
+          <div className="panel p-6">
+            <div className="flex items-center justify-between mb-6 border-b border-border pb-4">
+              <h2 className="text-lg font-semibold tracking-tight text-foreground flex items-center gap-2">
+                <Activity className="size-5 text-primary" />
+                Histórico Clínico e Evoluções
+              </h2>
+            </div>
+            
+            <div className="space-y-6">
+              {medicalRecords.length === 0 ? (
+                <div className="text-center p-8 border-2 border-dashed border-border rounded-xl bg-background/50 text-muted-foreground">
+                  Nenhum laudo ou prontuário preenchido ainda.
+                </div>
+              ) : (
+                medicalRecords.map(record => (
+                  <div key={record.id} className="border border-border rounded-lg bg-surface overflow-hidden">
+                    <div className="bg-accent/30 px-4 py-3 border-b border-border flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileText className="size-4 text-muted-foreground" />
+                        <span className="font-medium text-sm">
+                          {record.appointments?.procedures?.name || 'Consulta'}
+                        </span>
+                      </div>
+                      <div className="text-xs text-muted-foreground text-right">
+                        <div>{new Date(record.created_at).toLocaleDateString('pt-BR')}</div>
+                        <div>Dr(a). {record.professionals?.name || 'Não identificado'}</div>
+                      </div>
+                    </div>
+                    <div className="p-4 text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                      {record.content || <span className="italic text-muted-foreground">Nenhuma evolução descrita.</span>}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         )}
 
