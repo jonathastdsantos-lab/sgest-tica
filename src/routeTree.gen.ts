@@ -9,104 +9,370 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AgendaRouteImport } from './routes/agenda'
-import { Route as FinanceiroRouteImport } from './routes/financeiro'
-import { Route as PacientesRouteImport } from './routes/pacientes'
+import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as AuthIndexRouteImport } from './routes/_auth.index'
+import { Route as AuthAgendaRouteImport } from './routes/_auth.agenda'
+import { Route as AuthAssistenteRouteImport } from './routes/_auth.assistente'
+import { Route as AuthAtendimentosRouteImport } from './routes/_auth.atendimentos'
+import { Route as AuthClientesRouteImport } from './routes/_auth.clientes'
+import { Route as AuthConfiguracoesRouteImport } from './routes/_auth.configuracoes'
+import { Route as AuthCrmRouteImport } from './routes/_auth.crm'
+import { Route as AuthEquipeRouteImport } from './routes/_auth.equipe'
+import { Route as AuthFinanceiroRouteImport } from './routes/_auth.financeiro'
+import { Route as AuthOnboardingRouteImport } from './routes/_auth.onboarding'
+import { Route as AuthAtendimentosIdRouteImport } from './routes/_auth.atendimentos.$id'
+import { Route as AuthClientesIdRouteImport } from './routes/_auth.clientes.$id'
 
-const IndexRoute = IndexRouteImport.update({
+const AuthRoute = AuthRouteImport.update({
+  id: '/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthIndexRoute = AuthIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthRoute,
 } as any)
-const AgendaRoute = AgendaRouteImport.update({
+const AuthAgendaRoute = AuthAgendaRouteImport.update({
   id: '/agenda',
   path: '/agenda',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthRoute,
 } as any)
-const FinanceiroRoute = FinanceiroRouteImport.update({
+const AuthAssistenteRoute = AuthAssistenteRouteImport.update({
+  id: '/assistente',
+  path: '/assistente',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthAtendimentosRoute = AuthAtendimentosRouteImport.update({
+  id: '/atendimentos',
+  path: '/atendimentos',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthClientesRoute = AuthClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthConfiguracoesRoute = AuthConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthCrmRoute = AuthCrmRouteImport.update({
+  id: '/crm',
+  path: '/crm',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthEquipeRoute = AuthEquipeRouteImport.update({
+  id: '/equipe',
+  path: '/equipe',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthFinanceiroRoute = AuthFinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthRoute,
 } as any)
-const PacientesRoute = PacientesRouteImport.update({
-  id: '/pacientes',
-  path: '/pacientes',
-  getParentRoute: () => rootRouteImport,
+const AuthOnboardingRoute = AuthOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthAtendimentosIdRoute = AuthAtendimentosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthAtendimentosRoute,
+} as any)
+const AuthClientesIdRoute = AuthClientesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthClientesRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/agenda': typeof AgendaRoute
-  '/financeiro': typeof FinanceiroRoute
-  '/pacientes': typeof PacientesRoute
+  '/': typeof AuthIndexRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/agenda': typeof AuthAgendaRoute
+  '/assistente': typeof AuthAssistenteRoute
+  '/atendimentos': typeof AuthAtendimentosRouteWithChildren
+  '/clientes': typeof AuthClientesRouteWithChildren
+  '/configuracoes': typeof AuthConfiguracoesRoute
+  '/crm': typeof AuthCrmRoute
+  '/equipe': typeof AuthEquipeRoute
+  '/financeiro': typeof AuthFinanceiroRoute
+  '/onboarding': typeof AuthOnboardingRoute
+  '/atendimentos/$id': typeof AuthAtendimentosIdRoute
+  '/clientes/$id': typeof AuthClientesIdRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/agenda': typeof AgendaRoute
-  '/financeiro': typeof FinanceiroRoute
-  '/pacientes': typeof PacientesRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/agenda': typeof AuthAgendaRoute
+  '/assistente': typeof AuthAssistenteRoute
+  '/atendimentos': typeof AuthAtendimentosRouteWithChildren
+  '/clientes': typeof AuthClientesRouteWithChildren
+  '/configuracoes': typeof AuthConfiguracoesRoute
+  '/crm': typeof AuthCrmRoute
+  '/equipe': typeof AuthEquipeRoute
+  '/financeiro': typeof AuthFinanceiroRoute
+  '/onboarding': typeof AuthOnboardingRoute
+  '/': typeof AuthIndexRoute
+  '/atendimentos/$id': typeof AuthAtendimentosIdRoute
+  '/clientes/$id': typeof AuthClientesIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/agenda': typeof AgendaRoute
-  '/financeiro': typeof FinanceiroRoute
-  '/pacientes': typeof PacientesRoute
+  '/_auth': typeof AuthRouteWithChildren
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/_auth/agenda': typeof AuthAgendaRoute
+  '/_auth/assistente': typeof AuthAssistenteRoute
+  '/_auth/atendimentos': typeof AuthAtendimentosRouteWithChildren
+  '/_auth/clientes': typeof AuthClientesRouteWithChildren
+  '/_auth/configuracoes': typeof AuthConfiguracoesRoute
+  '/_auth/crm': typeof AuthCrmRoute
+  '/_auth/equipe': typeof AuthEquipeRoute
+  '/_auth/financeiro': typeof AuthFinanceiroRoute
+  '/_auth/onboarding': typeof AuthOnboardingRoute
+  '/_auth/': typeof AuthIndexRoute
+  '/_auth/atendimentos/$id': typeof AuthAtendimentosIdRoute
+  '/_auth/clientes/$id': typeof AuthClientesIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/agenda' | '/financeiro' | '/pacientes'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/agenda'
+    | '/assistente'
+    | '/atendimentos'
+    | '/clientes'
+    | '/configuracoes'
+    | '/crm'
+    | '/equipe'
+    | '/financeiro'
+    | '/onboarding'
+    | '/atendimentos/$id'
+    | '/clientes/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/agenda' | '/financeiro' | '/pacientes'
-  id: '__root__' | '/' | '/agenda' | '/financeiro' | '/pacientes'
+  to:
+    | '/login'
+    | '/register'
+    | '/agenda'
+    | '/assistente'
+    | '/atendimentos'
+    | '/clientes'
+    | '/configuracoes'
+    | '/crm'
+    | '/equipe'
+    | '/financeiro'
+    | '/onboarding'
+    | '/'
+    | '/atendimentos/$id'
+    | '/clientes/$id'
+  id:
+    | '__root__'
+    | '/_auth'
+    | '/login'
+    | '/register'
+    | '/_auth/agenda'
+    | '/_auth/assistente'
+    | '/_auth/atendimentos'
+    | '/_auth/clientes'
+    | '/_auth/configuracoes'
+    | '/_auth/crm'
+    | '/_auth/equipe'
+    | '/_auth/financeiro'
+    | '/_auth/onboarding'
+    | '/_auth/'
+    | '/_auth/atendimentos/$id'
+    | '/_auth/clientes/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AgendaRoute: typeof AgendaRoute
-  FinanceiroRoute: typeof FinanceiroRoute
-  PacientesRoute: typeof PacientesRoute
+  AuthRoute: typeof AuthRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  RegisterRoute: typeof RegisterRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth/': {
+      id: '/_auth/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthIndexRouteImport
+      parentRoute: typeof AuthRoute
     }
-    '/agenda': {
-      id: '/agenda'
+    '/_auth/agenda': {
+      id: '/_auth/agenda'
       path: '/agenda'
       fullPath: '/agenda'
-      preLoaderRoute: typeof AgendaRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthAgendaRouteImport
+      parentRoute: typeof AuthRoute
     }
-    '/financeiro': {
-      id: '/financeiro'
+    '/_auth/assistente': {
+      id: '/_auth/assistente'
+      path: '/assistente'
+      fullPath: '/assistente'
+      preLoaderRoute: typeof AuthAssistenteRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/atendimentos': {
+      id: '/_auth/atendimentos'
+      path: '/atendimentos'
+      fullPath: '/atendimentos'
+      preLoaderRoute: typeof AuthAtendimentosRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/clientes': {
+      id: '/_auth/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof AuthClientesRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/configuracoes': {
+      id: '/_auth/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof AuthConfiguracoesRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/crm': {
+      id: '/_auth/crm'
+      path: '/crm'
+      fullPath: '/crm'
+      preLoaderRoute: typeof AuthCrmRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/equipe': {
+      id: '/_auth/equipe'
+      path: '/equipe'
+      fullPath: '/equipe'
+      preLoaderRoute: typeof AuthEquipeRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/financeiro': {
+      id: '/_auth/financeiro'
       path: '/financeiro'
       fullPath: '/financeiro'
-      preLoaderRoute: typeof FinanceiroRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthFinanceiroRouteImport
+      parentRoute: typeof AuthRoute
     }
-    '/pacientes': {
-      id: '/pacientes'
-      path: '/pacientes'
-      fullPath: '/pacientes'
-      preLoaderRoute: typeof PacientesRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_auth/onboarding': {
+      id: '/_auth/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof AuthOnboardingRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/atendimentos/$id': {
+      id: '/_auth/atendimentos/$id'
+      path: '/$id'
+      fullPath: '/atendimentos/$id'
+      preLoaderRoute: typeof AuthAtendimentosIdRouteImport
+      parentRoute: typeof AuthAtendimentosRoute
+    }
+    '/_auth/clientes/$id': {
+      id: '/_auth/clientes/$id'
+      path: '/$id'
+      fullPath: '/clientes/$id'
+      preLoaderRoute: typeof AuthClientesIdRouteImport
+      parentRoute: typeof AuthClientesRoute
     }
   }
 }
 
+interface AuthAtendimentosRouteChildren {
+  AuthAtendimentosIdRoute: typeof AuthAtendimentosIdRoute
+}
+
+const AuthAtendimentosRouteChildren: AuthAtendimentosRouteChildren = {
+  AuthAtendimentosIdRoute: AuthAtendimentosIdRoute,
+}
+
+const AuthAtendimentosRouteWithChildren =
+  AuthAtendimentosRoute._addFileChildren(AuthAtendimentosRouteChildren)
+
+interface AuthClientesRouteChildren {
+  AuthClientesIdRoute: typeof AuthClientesIdRoute
+}
+
+const AuthClientesRouteChildren: AuthClientesRouteChildren = {
+  AuthClientesIdRoute: AuthClientesIdRoute,
+}
+
+const AuthClientesRouteWithChildren = AuthClientesRoute._addFileChildren(
+  AuthClientesRouteChildren,
+)
+
+interface AuthRouteChildren {
+  AuthAgendaRoute: typeof AuthAgendaRoute
+  AuthAssistenteRoute: typeof AuthAssistenteRoute
+  AuthAtendimentosRoute: typeof AuthAtendimentosRouteWithChildren
+  AuthClientesRoute: typeof AuthClientesRouteWithChildren
+  AuthConfiguracoesRoute: typeof AuthConfiguracoesRoute
+  AuthCrmRoute: typeof AuthCrmRoute
+  AuthEquipeRoute: typeof AuthEquipeRoute
+  AuthFinanceiroRoute: typeof AuthFinanceiroRoute
+  AuthOnboardingRoute: typeof AuthOnboardingRoute
+  AuthIndexRoute: typeof AuthIndexRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthAgendaRoute: AuthAgendaRoute,
+  AuthAssistenteRoute: AuthAssistenteRoute,
+  AuthAtendimentosRoute: AuthAtendimentosRouteWithChildren,
+  AuthClientesRoute: AuthClientesRouteWithChildren,
+  AuthConfiguracoesRoute: AuthConfiguracoesRoute,
+  AuthCrmRoute: AuthCrmRoute,
+  AuthEquipeRoute: AuthEquipeRoute,
+  AuthFinanceiroRoute: AuthFinanceiroRoute,
+  AuthOnboardingRoute: AuthOnboardingRoute,
+  AuthIndexRoute: AuthIndexRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AgendaRoute: AgendaRoute,
-  FinanceiroRoute: FinanceiroRoute,
-  PacientesRoute: PacientesRoute,
+  AuthRoute: AuthRouteWithChildren,
+  LoginRoute: LoginRoute,
+  RegisterRoute: RegisterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
