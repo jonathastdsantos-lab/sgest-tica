@@ -41,7 +41,7 @@ export function AppShell({
 }: {
   children: ReactNode;
 }) {
-  const { tenant, tenants, setTenantId } = useTenant();
+  const { tenant, units, currentUnit, switchUnit } = useTenant();
   const [unitMenuOpen, setUnitMenuOpen] = useState(false);
   const [newMenuOpen, setNewMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -131,23 +131,34 @@ export function AppShell({
               onClick={() => setUnitMenuOpen(!unitMenuOpen)}
               className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium hover:bg-accent transition-colors"
             >
-              <span className="truncate max-w-[120px] sm:max-w-[200px]">{tenant?.unidade || "Carregando..."}</span>
+              <span className="truncate max-w-[120px] sm:max-w-[200px]">
+                {tenant ? (currentUnit ? currentUnit.name : "Todas as unidades") : "Carregando..."}
+              </span>
               <ChevronsUpDown className="size-3.5 text-muted-foreground" />
             </button>
 
             {unitMenuOpen && (
               <div className="absolute top-full left-0 mt-1 w-56 rounded-md border border-border bg-popover p-1 shadow-lg z-50">
-                {tenants.map((t) => (
+                <button
+                  onClick={() => { switchUnit(null); setUnitMenuOpen(false); }}
+                  className={cn(
+                    "flex w-full items-center rounded-sm px-2 py-1.5 text-sm hover:bg-accent",
+                    currentUnit === null && "bg-accent font-medium"
+                  )}
+                >
+                  Todas as unidades
+                </button>
+                {units.length > 0 && <div className="h-px bg-border my-1" />}
+                {units.map((u) => (
                   <button
-                    key={t.id}
-                    onClick={() => { setTenantId(t.id); setUnitMenuOpen(false); }}
+                    key={u.id}
+                    onClick={() => { switchUnit(u.id); setUnitMenuOpen(false); }}
                     className={cn(
                       "flex w-full flex-col items-start rounded-sm px-2 py-1.5 text-sm hover:bg-accent",
-                      t.id === tenant?.id && "bg-accent"
+                      u.id === currentUnit?.id && "bg-accent"
                     )}
                   >
-                    <span className="font-medium">{t.unidade}</span>
-                    <span className="text-xs text-muted-foreground">{t.cidade} - {t.estado}</span>
+                    <span className="font-medium">{u.name}</span>
                   </button>
                 ))}
               </div>
@@ -160,7 +171,7 @@ export function AppShell({
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
               <input 
                 type="text" 
-                placeholder="Buscar cliente, telefone, procedimento..." 
+                placeholder="Buscar cliente, telefone, procedimento... (Ctrl+K)" 
                 className="h-9 w-full rounded-full border border-input bg-background/50 pl-9 pr-4 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-all"
               />
             </div>
@@ -192,10 +203,12 @@ export function AppShell({
             </div>
 
             {/* Notifications */}
-            <button className="flex size-9 items-center justify-center rounded-full hover:bg-accent transition-colors relative">
-              <Bell className="size-5 text-muted-foreground" />
-              <span className="absolute top-2 right-2.5 size-2 rounded-full bg-destructive border-2 border-surface" />
-            </button>
+            <div className="relative">
+              <button onClick={() => {}} className="flex size-9 items-center justify-center rounded-full hover:bg-accent transition-colors relative group">
+                <Bell className="size-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                <span className="absolute top-2 right-2.5 size-2 rounded-full bg-destructive border-2 border-surface" />
+              </button>
+            </div>
 
             {/* Avatar / Account */}
             <div className="relative ml-1">

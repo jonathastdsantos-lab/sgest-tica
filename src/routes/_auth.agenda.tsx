@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useTenant } from '@/hooks/use-tenant';
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
-import { CalendarDays, Plus, Clock, User, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, Clock, Plus, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/_auth/agenda')({
@@ -21,7 +21,7 @@ type Appointment = {
 type Client = { id: string; full_name: string };
 
 function Agenda() {
-  const { tenant } = useTenant();
+  const { tenant, currentUnit } = useTenant();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -40,23 +40,28 @@ function Agenda() {
     if (!tenant) return;
     setLoading(true);
     
-    // Start of day and End of day for currentDate
     const startOfDay = new Date(currentDate);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(currentDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('appointments')
       .select(`
         id, start_at, end_at, status,
         clients(full_name),
         procedures(name, color)
       `)
-      .eq('organization_id', tenant.organization_id)
+      .eq('organization_id', tenant.id)
       .gte('start_at', startOfDay.toISOString())
       .lte('start_at', endOfDay.toISOString())
       .order('start_at', { ascending: true });
+
+    if (currentUnit) {
+      query = query.eq('unit_id', currentUnit.id);
+    }
+
+    const { data, error } = await query;
 
     if (!error && data) {
       setAppointments(data as unknown as Appointment[]);
@@ -69,7 +74,7 @@ function Agenda() {
     const { data } = await supabase
       .from('clients')
       .select('id, full_name')
-      .eq('organization_id', tenant.organization_id)
+      .eq('organization_id', tenant.id)
       .order('full_name', { ascending: true });
     
     if (data) setClients(data);
@@ -77,7 +82,7 @@ function Agenda() {
 
   useEffect(() => {
     fetchAgenda();
-  }, [tenant, currentDate]);
+  }, [tenant, currentUnit, currentDate]);
 
   useEffect(() => {
     if (isModalOpen) {
@@ -109,7 +114,8 @@ function Agenda() {
     endAt.setMinutes(startAt.getMinutes() + 60); // Default 1h duration
 
     const { error } = await supabase.from('appointments').insert({
-      organization_id: tenant.organization_id,
+      organization_id: tenant.id,
+      unit_id: currentUnit ? currentUnit.id : null,
       client_id: selectedClient,
       start_at: startAt.toISOString(),
       end_at: endAt.toISOString(),
@@ -124,24 +130,20 @@ function Agenda() {
     setSaving(false);
   };
 
-  const statusColors: Record<string, string> = {
-    'scheduled': 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-    'confirmed': 'bg-green-500/10 text-green-600 border-green-500/20',
-    'completed': 'bg-accent text-muted-foreground border-border',
-  };
+  const isToday = currentDate.toDateString() === new Date().toDateString();
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto h-[calc(100vh-8rem)] flex flex-col">
       
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* Header and Controls */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0">
         <div>
           <h1 className="text-2xl font-display font-medium tracking-tight text-foreground flex items-center gap-2">
             <CalendarDays className="size-6 text-primary" />
-            Agenda Diária
+            Agenda {currentUnit ? `(${currentUnit.name})` : ''}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Gerencie os atendimentos e horários da sua clínica.
+            Gerencie os horários e atendimentos da clínica.
           </p>
         </div>
         
@@ -154,81 +156,115 @@ function Agenda() {
         </button>
       </div>
 
-      {/* Navegação de Datas */}
-      <div className="flex items-center justify-between panel p-3">
-        <button onClick={prevDay} className="p-2 hover:bg-accent rounded-md transition-colors">
-          <ChevronLeft className="size-5" />
-        </button>
-        <div className="text-center">
-          <span className="font-semibold text-lg capitalize">
-            {new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(currentDate)}
-          </span>
-          {currentDate.toDateString() === new Date().toDateString() && (
-             <div className="text-xs font-medium text-primary uppercase tracking-wider mt-0.5">Hoje</div>
-          )}
-        </div>
-        <button onClick={nextDay} className="p-2 hover:bg-accent rounded-md transition-colors">
-          <ChevronRight className="size-5" />
-        </button>
-      </div>
-
-      {/* Lista de Agenda */}
-      <div className="panel overflow-hidden min-h-[400px]">
-        {loading ? (
-          <div className="flex items-center justify-center h-64 text-muted-foreground">
-            Carregando agenda...
-          </div>
-        ) : appointments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-center p-6">
-            <div className="size-16 rounded-full bg-accent flex items-center justify-center mb-4 text-muted-foreground">
-              <CalendarDays className="size-8" />
+      <div className="panel flex flex-col flex-1 overflow-hidden">
+        
+        {/* Date Navigation */}
+        <div className="flex items-center justify-between p-4 border-b border-border bg-surface shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center bg-accent rounded-md p-1 shadow-sm">
+              <button onClick={prevDay} className="p-1.5 hover:bg-surface rounded text-muted-foreground hover:text-foreground transition-colors">
+                <ChevronLeft className="size-4" />
+              </button>
+              <button 
+                onClick={() => setCurrentDate(new Date())}
+                className={cn(
+                  "px-3 py-1 text-xs font-medium rounded transition-colors",
+                  isToday ? "bg-surface text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Hoje
+              </button>
+              <button onClick={nextDay} className="p-1.5 hover:bg-surface rounded text-muted-foreground hover:text-foreground transition-colors">
+                <ChevronRight className="size-4" />
+              </button>
             </div>
-            <h3 className="text-lg font-medium">Nenhum agendamento</h3>
-            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              Não há atendimentos marcados para este dia.
-            </p>
+            
+            <h2 className="text-lg font-semibold tracking-tight capitalize">
+              {new Intl.DateTimeFormat('pt-BR', { 
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+              }).format(currentDate)}
+            </h2>
           </div>
-        ) : (
-          <div className="divide-y divide-border">
-            {appointments.map((apt) => {
-              const time = new Date(apt.start_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-              return (
-                <div key={apt.id} className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:items-center hover:bg-accent/30 transition-colors">
-                  
-                  <div className="flex items-center gap-2 sm:w-24 shrink-0">
-                    <Clock className="size-4 text-muted-foreground" />
-                    <span className="font-display font-medium text-lg">{time}</span>
-                  </div>
+          
+          <div className="flex bg-accent rounded-md p-1">
+            <button className="px-3 py-1.5 text-xs font-medium bg-surface rounded shadow-sm text-foreground">Dia</button>
+            <button className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground">Semana</button>
+          </div>
+        </div>
 
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-base truncate">{apt.clients?.full_name}</h4>
-                    <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                      <span>{apt.procedures?.name || 'Procedimento não informado'}</span>
+        {/* Timeline View */}
+        <div className="flex-1 overflow-y-auto bg-surface relative">
+          
+          {loading ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm z-10">
+              <span className="text-muted-foreground font-medium animate-pulse">Carregando horários...</span>
+            </div>
+          ) : appointments.length === 0 ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+              <div className="size-16 rounded-full bg-accent flex items-center justify-center mb-4 text-muted-foreground">
+                <CalendarDays className="size-8" />
+              </div>
+              <h3 className="text-base font-medium">Nenhum agendamento</h3>
+              <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+                Não há consultas ou procedimentos agendados para este dia nesta unidade.
+              </p>
+              <button onClick={() => setIsModalOpen(true)} className="mt-6 px-4 py-2 bg-primary/10 text-primary font-medium rounded-md text-sm hover:bg-primary/20 transition-colors">
+                Criar Primeiro Agendamento
+              </button>
+            </div>
+          ) : (
+            <div className="min-w-[600px]">
+              {/* Fake timeline grid */}
+              <div className="divide-y divide-border">
+                {appointments.map((apt) => (
+                  <div key={apt.id} className="group flex border-l-4 border-transparent hover:border-primary hover:bg-accent/30 transition-all p-4">
+                    {/* Time Column */}
+                    <div className="w-24 shrink-0 border-r border-border pr-4 text-right">
+                      <div className="text-sm font-bold text-foreground">
+                        {new Date(apt.start_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        até {new Date(apt.end_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                    
+                    {/* Content Column */}
+                    <div className="pl-6 flex-1 flex flex-col justify-center">
+                      <div className="flex items-center gap-2 mb-1">
+                        <User className="size-4 text-muted-foreground" />
+                        <span className="font-semibold text-foreground">{apt.clients?.full_name}</span>
+                        <span className={cn(
+                          "ml-2 px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider",
+                          apt.status === 'scheduled' ? "bg-blue-500/10 text-blue-500" : 
+                          apt.status === 'confirmed' ? "bg-success/10 text-success" : 
+                          "bg-muted text-muted-foreground"
+                        )}>
+                          {apt.status}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <span className="size-2 rounded-full bg-primary" />
+                          {apt.procedures?.name || 'Procedimento Padrão'}
+                        </span>
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-                  <div className="sm:text-right">
-                    <span className={cn(
-                      "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider",
-                      statusColors[apt.status] || statusColors['scheduled']
-                    )}>
-                      {apt.status === 'scheduled' ? 'Agendado' : apt.status === 'confirmed' ? 'Confirmado' : apt.status}
-                    </span>
-                  </div>
-                  
-                </div>
-              );
-            })}
-          </div>
-        )}
+        </div>
       </div>
 
-      {/* Modal de Agendamento */}
+      {/* Modal Novo Agendamento */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl ring-1 ring-border animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-surface p-6 shadow-xl ring-1 ring-border animate-in zoom-in-95 duration-200">
             <h2 className="text-xl font-semibold tracking-tight mb-1">Novo Agendamento</h2>
-            <p className="text-sm text-muted-foreground mb-6">Reserve um horário na agenda.</p>
+            <p className="text-sm text-muted-foreground mb-6">Reserve um horário na agenda da clínica.</p>
             
             <form onSubmit={handleCreateAppointment} className="space-y-4">
               
@@ -245,9 +281,6 @@ function Agenda() {
                     <option key={c.id} value={c.id}>{c.full_name}</option>
                   ))}
                 </select>
-                {clients.length === 0 && (
-                  <p className="text-xs text-destructive mt-1">Nenhum cliente cadastrado. Cadastre um cliente primeiro.</p>
-                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -262,7 +295,7 @@ function Agenda() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Horário</label>
+                  <label className="text-sm font-medium">Horário (Início)</label>
                   <input
                     type="time"
                     required
@@ -283,10 +316,10 @@ function Agenda() {
                 </button>
                 <button
                   type="submit"
-                  disabled={saving || !selectedClient}
+                  disabled={saving}
                   className="flex h-10 flex-1 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 disabled:opacity-50"
                 >
-                  {saving ? 'Agendando...' : 'Agendar'}
+                  {saving ? 'Salvando...' : 'Confirmar'}
                 </button>
               </div>
             </form>

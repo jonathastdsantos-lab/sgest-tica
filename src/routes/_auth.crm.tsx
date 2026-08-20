@@ -26,7 +26,7 @@ type Lead = {
 type Client = { id: string; full_name: string };
 
 function Crm() {
-  const { tenant } = useTenant();
+  const { tenant, currentUnit } = useTenant();
   
   const [stages, setStages] = useState<Stage[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -64,13 +64,17 @@ function Crm() {
         setStages(stagesData);
       }
 
-      const { data: leadsData } = await supabase
+      let leadsQuery = supabase
         .from('leads')
         .select(`
           id, client_id, stage_id, title, value,
           clients(full_name)
         `)
         .eq('organization_id', tenant.organization_id);
+
+      if (currentUnit) leadsQuery = leadsQuery.eq('unit_id', currentUnit.id);
+
+      const { data: leadsData } = await leadsQuery;
 
       if (leadsData) {
         setLeads(leadsData as unknown as Lead[]);
@@ -105,6 +109,7 @@ function Crm() {
     
     const { error } = await supabase.from('leads').insert({
       organization_id: tenant.organization_id,
+      unit_id: currentUnit ? currentUnit.id : null,
       client_id: selectedClient,
       stage_id: stages[0].id, // First stage
       title: leadTitle || 'Oportunidade',
@@ -208,7 +213,7 @@ function Crm() {
       {/* Modal Novo Lead */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl ring-1 ring-border animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-surface p-6 shadow-xl ring-1 ring-border animate-in zoom-in-95 duration-200">
             <h2 className="text-xl font-semibold tracking-tight mb-1">Novo Lead</h2>
             <p className="text-sm text-muted-foreground mb-6">Adicione uma nova oportunidade de venda.</p>
             

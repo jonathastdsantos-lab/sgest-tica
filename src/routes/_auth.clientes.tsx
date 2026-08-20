@@ -194,7 +194,7 @@ function Clientes() {
       {/* Modal de Criação */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl ring-1 ring-border animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-surface p-6 shadow-xl ring-1 ring-border animate-in zoom-in-95 duration-200">
             <h2 className="text-xl font-semibold tracking-tight mb-1">Novo Cliente</h2>
             <p className="text-sm text-muted-foreground mb-6">Cadastro rápido para agendamentos e vendas.</p>
             

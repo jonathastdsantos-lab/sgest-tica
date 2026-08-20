@@ -8,23 +8,33 @@ export interface Organization {
   logo_url: string | null;
 }
 
+export interface Unit {
+  id: string;
+  name: string;
+}
+
 export function useTenant() {
   const { user } = useAuth();
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null);
+  
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [currentUnit, setCurrentUnit] = useState<Unit | null>(null); // null significa "Todas as unidades"
+  
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
       setOrganizations([]);
       setCurrentOrganization(null);
+      setUnits([]);
+      setCurrentUnit(null);
       setIsLoading(false);
       return;
     }
 
     const fetchOrganizations = async () => {
       setIsLoading(true);
-      // Aqui buscamos as organizações que o usuário tem acesso, usando a policy que já definimos no Supabase
       const { data, error } = await supabase
         .from('organizations')
         .select('id, name, logo_url');
@@ -32,8 +42,6 @@ export function useTenant() {
       if (!error && data) {
         setOrganizations(data);
         if (data.length > 0) {
-          // Seleciona a primeira organização por padrão. Em uma implementação futura,
-          // podemos salvar essa preferência no localStorage ou no default_unit_id do usuário.
           setCurrentOrganization(data[0]);
         }
       }
@@ -43,10 +51,42 @@ export function useTenant() {
     fetchOrganizations();
   }, [user]);
 
+  useEffect(() => {
+    if (!currentOrganization) {
+      setUnits([]);
+      setCurrentUnit(null);
+      return;
+    }
+
+    const fetchUnits = async () => {
+      const { data } = await supabase
+        .from('units')
+        .select('id, name')
+        .eq('organization_id', currentOrganization.id)
+        .order('name');
+      
+      if (data) {
+        setUnits(data);
+        setCurrentUnit(null); // Por padrão: Todas as unidades
+      }
+    };
+
+    fetchUnits();
+  }, [currentOrganization]);
+
   const switchOrganization = (orgId: string) => {
     const org = organizations.find((o) => o.id === orgId);
     if (org) {
       setCurrentOrganization(org);
+    }
+  };
+
+  const switchUnit = (unitId: string | null) => {
+    if (!unitId) {
+      setCurrentUnit(null);
+    } else {
+      const unit = units.find(u => u.id === unitId);
+      if (unit) setCurrentUnit(unit);
     }
   };
 
@@ -62,7 +102,6 @@ export function useTenant() {
       throw error;
     }
 
-    // Após criar, busca as organizações novamente
     const { data: fetch, error: fetchError } = await supabase
       .from('organizations')
       .select('id, name, logo_url');
@@ -70,7 +109,6 @@ export function useTenant() {
     if (!fetchError && fetch) {
       setOrganizations(fetch);
       if (fetch.length > 0) {
-        // Encontra a organização recém criada ou usa a primeira
         const newOrg = fetch.find((o) => o.id === data) || fetch[0];
         setCurrentOrganization(newOrg);
       }
@@ -82,7 +120,11 @@ export function useTenant() {
   return {
     organizations,
     currentOrganization,
+    tenant: currentOrganization, // alias para compatibilidade com o app antigo
+    units,
+    currentUnit,
     switchOrganization,
+    switchUnit,
     createOrganization,
     isLoading,
   };
