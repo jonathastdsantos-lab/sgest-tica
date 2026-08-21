@@ -268,27 +268,19 @@ export function AppShell({
 
       {/* Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-border bg-surface/90 backdrop-blur-md pb-safe lg:hidden">
-        {mobileNavigation.map(({ to, label, icon: Icon, action }) => (
+        {mobileNavigation.map(({ to, label, icon: Icon }) => (
           <Link
             key={label}
-            to={to === '#' ? window.location.pathname : to}
+            to={to}
             activeOptions={{ exact: to === "/" }}
-            className={cn(
-              "flex flex-col items-center justify-center gap-1 w-full h-full",
-              action === 'more' ? "text-muted-foreground" : "text-muted-foreground hover:text-foreground"
-            )}
+            className="flex flex-col items-center justify-center gap-1 w-full h-full text-muted-foreground hover:text-foreground"
             activeProps={{ className: "text-foreground font-medium" }}
-            onClick={(e) => {
-              if (action === 'more') {
-                e.preventDefault();
-                // Opcional: Abrir um menu drawer
-              }
-            }}
           >
             <Icon className="size-5" />
             <span className="text-[10px]">{label}</span>
           </Link>
         ))}
+
       </nav>
     </div>
   );
