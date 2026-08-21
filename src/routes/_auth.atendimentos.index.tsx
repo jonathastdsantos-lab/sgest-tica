@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Stethoscope, Clock, CheckCircle, Play, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/_auth/atendimentos')({
+export const Route = createFileRoute('/_auth/atendimentos/')({
   component: AtendimentosFila,
 });
 

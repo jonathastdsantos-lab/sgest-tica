@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Plus, Search, Users, Phone, MoreHorizontal, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/_auth/clientes')({
+export const Route = createFileRoute('/_auth/clientes/')({
   component: Clientes,
 });
 
