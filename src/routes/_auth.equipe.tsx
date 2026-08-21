@@ -35,7 +35,7 @@ function Equipe() {
     const { data, error } = await supabase
       .from('professionals')
       .select('*')
-      .eq('organization_id', tenant.organization_id)
+      .eq('organization_id', tenant.id)
       .order('name', { ascending: true });
 
     if (!error && data) {
@@ -55,7 +55,7 @@ function Equipe() {
     
     // Simples insert
     const { error } = await supabase.from('professionals').insert({
-      organization_id: tenant.organization_id,
+      organization_id: tenant.id,
       name: newName,
       role: newRole || 'Especialista',
     });

@@ -81,7 +81,7 @@ function ClientePerfil() {
     const { data: procData } = await supabase
       .from('procedures')
       .select('id, name, price')
-      .eq('organization_id', tenant.organization_id)
+      .eq('organization_id', tenant.id)
       .order('name', { ascending: true });
 
     if (procData) setProceduresList(procData);
@@ -97,7 +97,7 @@ function ClientePerfil() {
         .from('clients')
         .select('*')
         .eq('id', id)
-        .eq('organization_id', tenant.organization_id)
+        .eq('organization_id', tenant.id)
         .single();
       
       if (clientData) setClient(clientData);
@@ -155,7 +155,7 @@ function ClientePerfil() {
     setSavingPkg(true);
 
     const { error } = await supabase.from('packages').insert({
-      organization_id: tenant.organization_id,
+      organization_id: tenant.id,
       client_id: client.id,
       procedure_id: pkgProcedureId || null,
       total_sessions: Number(pkgTotalSessions) || 10,

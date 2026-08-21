@@ -39,7 +39,7 @@ function Clientes() {
         *,
         packages(id, status)
       `)
-      .eq('organization_id', tenant.organization_id)
+      .eq('organization_id', tenant.id)
       .order('created_at', { ascending: false });
 
     if (!error && data) {
@@ -63,7 +63,7 @@ function Clientes() {
     setSaving(true);
     
     const { error } = await supabase.from('clients').insert({
-      organization_id: tenant.organization_id,
+      organization_id: tenant.id,
       full_name: newClientName,
       phone: newClientPhone,
       whatsapp: newClientPhone,

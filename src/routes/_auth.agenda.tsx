@@ -186,7 +186,7 @@ function Agenda() {
     }
 
     const { data: insertedApt, error } = await supabase.from('appointments').insert({
-      organization_id: tenant.organization_id || tenant.id,
+      organization_id: tenant.id,
       unit_id: currentUnit ? currentUnit.id : null,
       client_id: selectedClient,
       professional_id: selectedProf || null,

@@ -33,7 +33,7 @@ function Dashboard() {
       setLoading(true);
 
       try {
-        const orgId = tenant.organization_id || tenant.id;
+        const orgId = tenant.id;
         const startOfDay = new Date();
         startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date();

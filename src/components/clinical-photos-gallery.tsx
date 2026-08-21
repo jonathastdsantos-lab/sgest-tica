@@ -120,7 +120,7 @@ export function ClinicalPhotosGallery({ clientId, recordId }: ClinicalPhotosGall
       }
 
       const { error } = await supabase.from('clinical_photos').insert({
-        organization_id: tenant.organization_id || tenant.id,
+        organization_id: tenant.id,
         client_id: clientId,
         record_id: recordId || null,
         photo_url: finalPhotoUrl,
