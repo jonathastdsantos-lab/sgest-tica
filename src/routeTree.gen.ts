@@ -16,8 +16,6 @@ import { Route as AuthIndexRouteImport } from './routes/_auth.index'
 import { Route as AuthAgendaRouteImport } from './routes/_auth.agenda'
 import { Route as AuthAjudaRouteImport } from './routes/_auth.ajuda'
 import { Route as AuthAssistenteRouteImport } from './routes/_auth.assistente'
-import { Route as AuthAtendimentosRouteImport } from './routes/_auth.atendimentos'
-import { Route as AuthClientesRouteImport } from './routes/_auth.clientes'
 import { Route as AuthConfiguracoesRouteImport } from './routes/_auth.configuracoes'
 import { Route as AuthCrmRouteImport } from './routes/_auth.crm'
 import { Route as AuthEquipeRouteImport } from './routes/_auth.equipe'
@@ -27,7 +25,9 @@ import { Route as AuthMarketingRouteImport } from './routes/_auth.marketing'
 import { Route as AuthOnboardingRouteImport } from './routes/_auth.onboarding'
 import { Route as AuthRelatoriosRouteImport } from './routes/_auth.relatorios'
 import { Route as AgendarOrgSlugRouteImport } from './routes/agendar.$orgSlug'
+import { Route as AuthAtendimentosIndexRouteImport } from './routes/_auth.atendimentos.index'
 import { Route as AuthAtendimentosIdRouteImport } from './routes/_auth.atendimentos.$id'
+import { Route as AuthClientesIndexRouteImport } from './routes/_auth.clientes.index'
 import { Route as AuthClientesIdRouteImport } from './routes/_auth.clientes.$id'
 
 const AuthRoute = AuthRouteImport.update({
@@ -62,16 +62,6 @@ const AuthAjudaRoute = AuthAjudaRouteImport.update({
 const AuthAssistenteRoute = AuthAssistenteRouteImport.update({
   id: '/assistente',
   path: '/assistente',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthAtendimentosRoute = AuthAtendimentosRouteImport.update({
-  id: '/atendimentos',
-  path: '/atendimentos',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthClientesRoute = AuthClientesRouteImport.update({
-  id: '/clientes',
-  path: '/clientes',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthConfiguracoesRoute = AuthConfiguracoesRouteImport.update({
@@ -119,15 +109,25 @@ const AgendarOrgSlugRoute = AgendarOrgSlugRouteImport.update({
   path: '/agendar/$orgSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthAtendimentosIndexRoute = AuthAtendimentosIndexRouteImport.update({
+  id: '/atendimentos/',
+  path: '/atendimentos/',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthAtendimentosIdRoute = AuthAtendimentosIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AuthAtendimentosRoute,
+  id: '/atendimentos/$id',
+  path: '/atendimentos/$id',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthClientesIndexRoute = AuthClientesIndexRouteImport.update({
+  id: '/clientes/',
+  path: '/clientes/',
+  getParentRoute: () => AuthRoute,
 } as any)
 const AuthClientesIdRoute = AuthClientesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AuthClientesRoute,
+  id: '/clientes/$id',
+  path: '/clientes/$id',
+  getParentRoute: () => AuthRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -137,8 +137,6 @@ export interface FileRoutesByFullPath {
   '/agenda': typeof AuthAgendaRoute
   '/ajuda': typeof AuthAjudaRoute
   '/assistente': typeof AuthAssistenteRoute
-  '/atendimentos': typeof AuthAtendimentosRouteWithChildren
-  '/clientes': typeof AuthClientesRouteWithChildren
   '/configuracoes': typeof AuthConfiguracoesRoute
   '/crm': typeof AuthCrmRoute
   '/equipe': typeof AuthEquipeRoute
@@ -150,6 +148,8 @@ export interface FileRoutesByFullPath {
   '/agendar/$orgSlug': typeof AgendarOrgSlugRoute
   '/atendimentos/$id': typeof AuthAtendimentosIdRoute
   '/clientes/$id': typeof AuthClientesIdRoute
+  '/atendimentos/': typeof AuthAtendimentosIndexRoute
+  '/clientes/': typeof AuthClientesIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -157,8 +157,6 @@ export interface FileRoutesByTo {
   '/agenda': typeof AuthAgendaRoute
   '/ajuda': typeof AuthAjudaRoute
   '/assistente': typeof AuthAssistenteRoute
-  '/atendimentos': typeof AuthAtendimentosRouteWithChildren
-  '/clientes': typeof AuthClientesRouteWithChildren
   '/configuracoes': typeof AuthConfiguracoesRoute
   '/crm': typeof AuthCrmRoute
   '/equipe': typeof AuthEquipeRoute
@@ -171,6 +169,8 @@ export interface FileRoutesByTo {
   '/': typeof AuthIndexRoute
   '/atendimentos/$id': typeof AuthAtendimentosIdRoute
   '/clientes/$id': typeof AuthClientesIdRoute
+  '/atendimentos': typeof AuthAtendimentosIndexRoute
+  '/clientes': typeof AuthClientesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -180,8 +180,6 @@ export interface FileRoutesById {
   '/_auth/agenda': typeof AuthAgendaRoute
   '/_auth/ajuda': typeof AuthAjudaRoute
   '/_auth/assistente': typeof AuthAssistenteRoute
-  '/_auth/atendimentos': typeof AuthAtendimentosRouteWithChildren
-  '/_auth/clientes': typeof AuthClientesRouteWithChildren
   '/_auth/configuracoes': typeof AuthConfiguracoesRoute
   '/_auth/crm': typeof AuthCrmRoute
   '/_auth/equipe': typeof AuthEquipeRoute
@@ -194,6 +192,8 @@ export interface FileRoutesById {
   '/_auth/': typeof AuthIndexRoute
   '/_auth/atendimentos/$id': typeof AuthAtendimentosIdRoute
   '/_auth/clientes/$id': typeof AuthClientesIdRoute
+  '/_auth/atendimentos/': typeof AuthAtendimentosIndexRoute
+  '/_auth/clientes/': typeof AuthClientesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -204,8 +204,6 @@ export interface FileRouteTypes {
     | '/agenda'
     | '/ajuda'
     | '/assistente'
-    | '/atendimentos'
-    | '/clientes'
     | '/configuracoes'
     | '/crm'
     | '/equipe'
@@ -217,6 +215,8 @@ export interface FileRouteTypes {
     | '/agendar/$orgSlug'
     | '/atendimentos/$id'
     | '/clientes/$id'
+    | '/atendimentos/'
+    | '/clientes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -224,8 +224,6 @@ export interface FileRouteTypes {
     | '/agenda'
     | '/ajuda'
     | '/assistente'
-    | '/atendimentos'
-    | '/clientes'
     | '/configuracoes'
     | '/crm'
     | '/equipe'
@@ -238,6 +236,8 @@ export interface FileRouteTypes {
     | '/'
     | '/atendimentos/$id'
     | '/clientes/$id'
+    | '/atendimentos'
+    | '/clientes'
   id:
     | '__root__'
     | '/_auth'
@@ -246,8 +246,6 @@ export interface FileRouteTypes {
     | '/_auth/agenda'
     | '/_auth/ajuda'
     | '/_auth/assistente'
-    | '/_auth/atendimentos'
-    | '/_auth/clientes'
     | '/_auth/configuracoes'
     | '/_auth/crm'
     | '/_auth/equipe'
@@ -260,6 +258,8 @@ export interface FileRouteTypes {
     | '/_auth/'
     | '/_auth/atendimentos/$id'
     | '/_auth/clientes/$id'
+    | '/_auth/atendimentos/'
+    | '/_auth/clientes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -318,20 +318,6 @@ declare module '@tanstack/react-router' {
       path: '/assistente'
       fullPath: '/assistente'
       preLoaderRoute: typeof AuthAssistenteRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/atendimentos': {
-      id: '/_auth/atendimentos'
-      path: '/atendimentos'
-      fullPath: '/atendimentos'
-      preLoaderRoute: typeof AuthAtendimentosRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/clientes': {
-      id: '/_auth/clientes'
-      path: '/clientes'
-      fullPath: '/clientes'
-      preLoaderRoute: typeof AuthClientesRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/configuracoes': {
@@ -397,52 +383,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgendarOrgSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth/atendimentos/': {
+      id: '/_auth/atendimentos/'
+      path: '/atendimentos'
+      fullPath: '/atendimentos/'
+      preLoaderRoute: typeof AuthAtendimentosIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/atendimentos/$id': {
       id: '/_auth/atendimentos/$id'
-      path: '/$id'
+      path: '/atendimentos/$id'
       fullPath: '/atendimentos/$id'
       preLoaderRoute: typeof AuthAtendimentosIdRouteImport
-      parentRoute: typeof AuthAtendimentosRoute
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/clientes/': {
+      id: '/_auth/clientes/'
+      path: '/clientes'
+      fullPath: '/clientes/'
+      preLoaderRoute: typeof AuthClientesIndexRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/_auth/clientes/$id': {
       id: '/_auth/clientes/$id'
-      path: '/$id'
+      path: '/clientes/$id'
       fullPath: '/clientes/$id'
       preLoaderRoute: typeof AuthClientesIdRouteImport
-      parentRoute: typeof AuthClientesRoute
+      parentRoute: typeof AuthRoute
     }
   }
 }
-
-interface AuthAtendimentosRouteChildren {
-  AuthAtendimentosIdRoute: typeof AuthAtendimentosIdRoute
-}
-
-const AuthAtendimentosRouteChildren: AuthAtendimentosRouteChildren = {
-  AuthAtendimentosIdRoute: AuthAtendimentosIdRoute,
-}
-
-const AuthAtendimentosRouteWithChildren =
-  AuthAtendimentosRoute._addFileChildren(AuthAtendimentosRouteChildren)
-
-interface AuthClientesRouteChildren {
-  AuthClientesIdRoute: typeof AuthClientesIdRoute
-}
-
-const AuthClientesRouteChildren: AuthClientesRouteChildren = {
-  AuthClientesIdRoute: AuthClientesIdRoute,
-}
-
-const AuthClientesRouteWithChildren = AuthClientesRoute._addFileChildren(
-  AuthClientesRouteChildren,
-)
 
 interface AuthRouteChildren {
   AuthAgendaRoute: typeof AuthAgendaRoute
   AuthAjudaRoute: typeof AuthAjudaRoute
   AuthAssistenteRoute: typeof AuthAssistenteRoute
-  AuthAtendimentosRoute: typeof AuthAtendimentosRouteWithChildren
-  AuthClientesRoute: typeof AuthClientesRouteWithChildren
   AuthConfiguracoesRoute: typeof AuthConfiguracoesRoute
   AuthCrmRoute: typeof AuthCrmRoute
   AuthEquipeRoute: typeof AuthEquipeRoute
@@ -452,14 +427,16 @@ interface AuthRouteChildren {
   AuthOnboardingRoute: typeof AuthOnboardingRoute
   AuthRelatoriosRoute: typeof AuthRelatoriosRoute
   AuthIndexRoute: typeof AuthIndexRoute
+  AuthAtendimentosIdRoute: typeof AuthAtendimentosIdRoute
+  AuthClientesIdRoute: typeof AuthClientesIdRoute
+  AuthAtendimentosIndexRoute: typeof AuthAtendimentosIndexRoute
+  AuthClientesIndexRoute: typeof AuthClientesIndexRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthAgendaRoute: AuthAgendaRoute,
   AuthAjudaRoute: AuthAjudaRoute,
   AuthAssistenteRoute: AuthAssistenteRoute,
-  AuthAtendimentosRoute: AuthAtendimentosRouteWithChildren,
-  AuthClientesRoute: AuthClientesRouteWithChildren,
   AuthConfiguracoesRoute: AuthConfiguracoesRoute,
   AuthCrmRoute: AuthCrmRoute,
   AuthEquipeRoute: AuthEquipeRoute,
@@ -469,6 +446,10 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthOnboardingRoute: AuthOnboardingRoute,
   AuthRelatoriosRoute: AuthRelatoriosRoute,
   AuthIndexRoute: AuthIndexRoute,
+  AuthAtendimentosIdRoute: AuthAtendimentosIdRoute,
+  AuthClientesIdRoute: AuthClientesIdRoute,
+  AuthAtendimentosIndexRoute: AuthAtendimentosIndexRoute,
+  AuthClientesIndexRoute: AuthClientesIndexRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
