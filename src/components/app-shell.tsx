@@ -239,16 +239,17 @@ export function AppShell({
                 className="flex size-9 items-center justify-center rounded-full bg-accent ring-1 ring-border transition-transform hover:scale-105"
               >
                 <span className="text-xs font-semibold text-foreground">
-                  {getInitials(tenant?.responsavel)}
+                  {getInitials(userName)}
                 </span>
               </button>
 
               {accountMenuOpen && (
                 <div className="absolute right-0 top-full mt-2 w-56 rounded-md border border-border bg-popover p-1 shadow-lg z-50 animate-in fade-in zoom-in-95 duration-100">
                   <div className="px-2 py-2 border-b border-border mb-1">
-                    <p className="text-sm font-medium">{tenant?.responsavel}</p>
-                    <p className="text-xs text-muted-foreground">{tenant?.nome}</p>
+                    <p className="text-sm font-medium">{userName}</p>
+                    <p className="text-xs text-muted-foreground">{tenant?.name}</p>
                   </div>
+
                   <button onClick={() => setAccountMenuOpen(false)} className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"><Settings className="size-4 text-muted-foreground"/> Minha Conta</button>
                   <button onClick={handleLogout} className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10 mt-1"><LogOut className="size-4"/> Sair</button>
                 </div>
