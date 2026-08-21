@@ -17,7 +17,7 @@ type Message = {
 
 function Assistant() {
   const { tenant, currentUnit } = useTenant();
-  const firstName = tenant?.responsavel?.split(' ')[0] || 'Doutor(a)';
+  const firstName = tenant?.name?.split(' ')[0] || 'Doutor(a)';
   
   const [apiKey, setApiKey] = useState('');
   const [hasKey, setHasKey] = useState(false);
