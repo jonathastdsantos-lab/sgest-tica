@@ -54,6 +54,10 @@ export function AppShell({
   children: ReactNode;
 }) {
   const { tenant, units, currentUnit, switchUnit } = useTenant();
+  const { user } = useAuth();
+  const userName =
+    (user?.user_metadata?.["full_name"] as string | undefined) || user?.email || "Minha conta";
+
   const [unitMenuOpen, setUnitMenuOpen] = useState(false);
   const [newMenuOpen, setNewMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
