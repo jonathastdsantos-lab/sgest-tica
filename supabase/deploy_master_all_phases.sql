@@ -234,6 +234,7 @@ BEGIN
     USING (EXISTS (SELECT 1 FROM public.organization_members WHERE organization_members.organization_id = organizations.id AND organization_members.user_id = auth.uid()));
 
     DROP POLICY IF EXISTS "Users can view package_sessions of their org" ON public.package_sessions;
+    DROP POLICY IF EXISTS "Users can access package_sessions of their org" ON public.package_sessions;
     CREATE POLICY "Users can access package_sessions of their org" 
     ON public.package_sessions FOR ALL 
     USING (EXISTS (SELECT 1 FROM public.packages p WHERE p.id = package_sessions.package_id AND public.user_has_org_access(p.organization_id)));
