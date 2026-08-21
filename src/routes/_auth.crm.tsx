@@ -48,7 +48,7 @@ function Crm() {
     const { data: pipelines } = await supabase
       .from('crm_pipelines')
       .select('id')
-      .eq('organization_id', tenant.organization_id)
+      .eq('organization_id', tenant.id)
       .limit(1);
 
     if (pipelines && pipelines.length > 0) {
@@ -70,7 +70,7 @@ function Crm() {
           id, client_id, stage_id, title, value,
           clients(full_name)
         `)
-        .eq('organization_id', tenant.organization_id);
+        .eq('organization_id', tenant.id);
 
       if (currentUnit) leadsQuery = leadsQuery.eq('unit_id', currentUnit.id);
 
@@ -88,7 +88,7 @@ function Crm() {
     const { data } = await supabase
       .from('clients')
       .select('id, full_name')
-      .eq('organization_id', tenant.organization_id)
+      .eq('organization_id', tenant.id)
       .order('full_name', { ascending: true });
     
     if (data) setClients(data);
@@ -108,7 +108,7 @@ function Crm() {
     setSaving(true);
     
     const { error } = await supabase.from('leads').insert({
-      organization_id: tenant.organization_id,
+      organization_id: tenant.id,
       unit_id: currentUnit ? currentUnit.id : null,
       client_id: selectedClient,
       stage_id: stages[0].id, // First stage

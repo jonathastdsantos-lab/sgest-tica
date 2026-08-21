@@ -120,7 +120,7 @@ export function ClinicalPhotosGallery({ clientId, recordId }: ClinicalPhotosGall
       }
 
       const { error } = await supabase.from('clinical_photos').insert({
-        organization_id: tenant.organization_id || tenant.id,
+        organization_id: tenant.id,
         client_id: clientId,
         record_id: recordId || null,
         photo_url: finalPhotoUrl,
@@ -371,7 +371,7 @@ export function ClinicalPhotosGallery({ clientId, recordId }: ClinicalPhotosGall
                   Antes
                 </span>
                 <div className="grid gap-4">
-                  {groupedPhotos[compareBodyPart]
+                  {(groupedPhotos[compareBodyPart] ?? [])
                     .filter(p => p.photo_type === 'before')
                     .map(p => (
                       <div key={p.id} className="rounded-xl border border-border overflow-hidden bg-background">
@@ -391,7 +391,7 @@ export function ClinicalPhotosGallery({ clientId, recordId }: ClinicalPhotosGall
                   Depois
                 </span>
                 <div className="grid gap-4">
-                  {groupedPhotos[compareBodyPart]
+                  {(groupedPhotos[compareBodyPart] ?? [])
                     .filter(p => p.photo_type === 'after')
                     .map(p => (
                       <div key={p.id} className="rounded-xl border border-border overflow-hidden bg-background">

@@ -114,7 +114,7 @@ function Agenda() {
   useEffect(() => {
     if (isModalOpen) {
       fetchDependencies();
-      setDateInput(currentDate.toISOString().split('T')[0]);
+      setDateInput(currentDate.toISOString().split('T')[0] ?? '');
       setTimeInput('09:00');
     }
   }, [isModalOpen]);
@@ -186,7 +186,7 @@ function Agenda() {
     }
 
     const { data: insertedApt, error } = await supabase.from('appointments').insert({
-      organization_id: tenant.organization_id || tenant.id,
+      organization_id: tenant.id,
       unit_id: currentUnit ? currentUnit.id : null,
       client_id: selectedClient,
       professional_id: selectedProf || null,
@@ -245,7 +245,7 @@ function Agenda() {
     if (!apt) return;
 
     const newStartAt = new Date(currentDate);
-    const [hours, minutes] = timeStr.split(':').map(Number);
+    const [hours = 0, minutes = 0] = timeStr.split(':').map(Number);
     newStartAt.setHours(hours, minutes, 0, 0);
 
     const durationMs = new Date(apt.end_at).getTime() - new Date(apt.start_at).getTime();

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Stethoscope, Clock, CheckCircle, Play, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/_auth/atendimentos')({
+export const Route = createFileRoute('/_auth/atendimentos/')({
   component: AtendimentosFila,
 });
 
@@ -127,7 +127,8 @@ function AtendimentosFila() {
                   </span>
                   
                   <Link
-                    to={`/atendimentos/${apt.id}`}
+                    to="/atendimentos/$id"
+                    params={{ id: apt.id }}
                     className="flex-1 sm:flex-none flex items-center justify-center gap-2 h-9 px-4 rounded-md bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors shadow-xs"
                   >
                     <Play className="size-3.5" fill="currentColor" />

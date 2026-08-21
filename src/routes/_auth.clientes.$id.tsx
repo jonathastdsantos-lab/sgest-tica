@@ -81,7 +81,7 @@ function ClientePerfil() {
     const { data: procData } = await supabase
       .from('procedures')
       .select('id, name, price')
-      .eq('organization_id', tenant.organization_id)
+      .eq('organization_id', tenant.id)
       .order('name', { ascending: true });
 
     if (procData) setProceduresList(procData);
@@ -97,7 +97,7 @@ function ClientePerfil() {
         .from('clients')
         .select('*')
         .eq('id', id)
-        .eq('organization_id', tenant.organization_id)
+        .eq('organization_id', tenant.id)
         .single();
       
       if (clientData) setClient(clientData);
@@ -155,7 +155,7 @@ function ClientePerfil() {
     setSavingPkg(true);
 
     const { error } = await supabase.from('packages').insert({
-      organization_id: tenant.organization_id,
+      organization_id: tenant.id,
       client_id: client.id,
       procedure_id: pkgProcedureId || null,
       total_sessions: Number(pkgTotalSessions) || 10,
@@ -194,8 +194,8 @@ function ClientePerfil() {
   const pastAppointments = appointments.filter(a => new Date(a.start_at) < new Date() && a.status !== 'cancelled');
   const futureAppointments = appointments.filter(a => new Date(a.start_at) >= new Date() && a.status !== 'cancelled');
 
-  const ultimaVisita = pastAppointments.length > 0 ? new Date(pastAppointments[0].start_at) : null;
-  const proximaVisita = futureAppointments.length > 0 ? new Date(futureAppointments[futureAppointments.length - 1].start_at) : null;
+  const ultimaVisita = pastAppointments.length > 0 ? new Date(pastAppointments[0]!.start_at) : null;
+  const proximaVisita = futureAppointments.length > 0 ? new Date(futureAppointments[futureAppointments.length - 1]!.start_at) : null;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto">

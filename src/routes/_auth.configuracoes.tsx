@@ -45,7 +45,7 @@ function Configuracoes() {
     const { data } = await supabase
       .from('procedures')
       .select('*')
-      .eq('organization_id', tenant.organization_id)
+      .eq('organization_id', tenant.id)
       .order('name', { ascending: true });
     
     if (data) setProcedures(data);
@@ -64,7 +64,7 @@ function Configuracoes() {
     setSavingProc(true);
 
     const { error } = await supabase.from('procedures').insert({
-      organization_id: tenant.organization_id,
+      organization_id: tenant.id,
       name: procName,
       price: Number(procPrice) || 0,
       duration_minutes: Number(procDuration) || 60,

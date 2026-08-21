@@ -1,15 +1,26 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, type LinkProps } from "@tanstack/react-router";
 import { 
   CalendarDays, ChevronsUpDown, LayoutGrid, Plus, Sparkles, Users, 
   Wallet, TrendingUp, Stethoscope, Megaphone, Package, UsersRound, 
-  BarChart3, Settings, HelpCircle, Search, Bell, MoreHorizontal, LogOut, FileText, ChevronDown
+  BarChart3, Settings, HelpCircle, Search, Bell, MoreHorizontal, LogOut, FileText, ChevronDown,
+  type LucideIcon
 } from "lucide-react";
 import { useState, type ReactNode, useEffect, useRef } from "react";
+import { useAuth } from "@/hooks/use-auth";
 import { useTenant } from "@/hooks/use-tenant";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 
-const navigation = [
+type NavItem = {
+  to: NonNullable<LinkProps["to"]>;
+  label: string;
+  icon: LucideIcon;
+  badge?: string;
+  highlight?: boolean;
+  action?: "more";
+};
+
+const navigation: NavItem[] = [
   { to: "/", label: "Visão Geral", icon: LayoutGrid },
   { to: "/agenda", label: "Agenda", icon: CalendarDays },
   { to: "/clientes", label: "Clientes", icon: Users },
@@ -18,23 +29,24 @@ const navigation = [
   { to: "/financeiro", label: "Financeiro", icon: Wallet },
   { to: "/marketing", label: "Marketing", icon: Megaphone, badge: "Em breve" },
   { to: "/estoque", label: "Estoque", icon: Package, badge: "Em breve" },
-  { to: "/equipe", label: "Equipe", icon: UsersRound, badge: "Em breve" },
+  { to: "/equipe", label: "Equipe", icon: UsersRound },
   { to: "/relatorios", label: "Relatórios", icon: BarChart3, badge: "Em breve" },
-] as const;
+];
 
-const bottomNavigation = [
+const bottomNavigation: NavItem[] = [
   { to: "/assistente", label: "Assistente IA", icon: Sparkles, highlight: true },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
   { to: "/ajuda", label: "Ajuda", icon: HelpCircle },
-] as const;
+];
 
-const mobileNavigation = [
+const mobileNavigation: NavItem[] = [
   { to: "/", label: "Home", icon: LayoutGrid },
   { to: "/agenda", label: "Agenda", icon: CalendarDays },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/crm", label: "CRM", icon: TrendingUp },
-  { to: "#", label: "Mais", icon: MoreHorizontal, action: 'more' },
-] as const;
+  { to: "/configuracoes", label: "Mais", icon: MoreHorizontal },
+];
+
 
 export function AppShell({
   children,
@@ -42,6 +54,10 @@ export function AppShell({
   children: ReactNode;
 }) {
   const { tenant, units, currentUnit, switchUnit } = useTenant();
+  const { user } = useAuth();
+  const userName =
+    (user?.user_metadata?.["full_name"] as string | undefined) || user?.email || "Minha conta";
+
   const [unitMenuOpen, setUnitMenuOpen] = useState(false);
   const [newMenuOpen, setNewMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -223,16 +239,17 @@ export function AppShell({
                 className="flex size-9 items-center justify-center rounded-full bg-accent ring-1 ring-border transition-transform hover:scale-105"
               >
                 <span className="text-xs font-semibold text-foreground">
-                  {getInitials(tenant?.responsavel)}
+                  {getInitials(userName)}
                 </span>
               </button>
 
               {accountMenuOpen && (
                 <div className="absolute right-0 top-full mt-2 w-56 rounded-md border border-border bg-popover p-1 shadow-lg z-50 animate-in fade-in zoom-in-95 duration-100">
                   <div className="px-2 py-2 border-b border-border mb-1">
-                    <p className="text-sm font-medium">{tenant?.responsavel}</p>
-                    <p className="text-xs text-muted-foreground">{tenant?.nome}</p>
+                    <p className="text-sm font-medium">{userName}</p>
+                    <p className="text-xs text-muted-foreground">{tenant?.name}</p>
                   </div>
+
                   <button onClick={() => setAccountMenuOpen(false)} className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"><Settings className="size-4 text-muted-foreground"/> Minha Conta</button>
                   <button onClick={handleLogout} className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10 mt-1"><LogOut className="size-4"/> Sair</button>
                 </div>
@@ -251,27 +268,19 @@ export function AppShell({
 
       {/* Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-border bg-surface/90 backdrop-blur-md pb-safe lg:hidden">
-        {mobileNavigation.map(({ to, label, icon: Icon, action }) => (
+        {mobileNavigation.map(({ to, label, icon: Icon }) => (
           <Link
             key={label}
-            to={to === '#' ? window.location.pathname : to}
+            to={to}
             activeOptions={{ exact: to === "/" }}
-            className={cn(
-              "flex flex-col items-center justify-center gap-1 w-full h-full",
-              action === 'more' ? "text-muted-foreground" : "text-muted-foreground hover:text-foreground"
-            )}
+            className="flex flex-col items-center justify-center gap-1 w-full h-full text-muted-foreground hover:text-foreground"
             activeProps={{ className: "text-foreground font-medium" }}
-            onClick={(e) => {
-              if (action === 'more') {
-                e.preventDefault();
-                // Opcional: Abrir um menu drawer
-              }
-            }}
           >
             <Icon className="size-5" />
             <span className="text-[10px]">{label}</span>
           </Link>
         ))}
+
       </nav>
     </div>
   );

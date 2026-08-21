@@ -33,7 +33,7 @@ function Dashboard() {
       setLoading(true);
 
       try {
-        const orgId = tenant.organization_id || tenant.id;
+        const orgId = tenant.id;
         const startOfDay = new Date();
         startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date();
@@ -185,7 +185,7 @@ function Dashboard() {
           <div className="panel flex flex-col min-h-[300px]">
             <div className="flex items-center justify-between border-b border-border p-5">
               <h2 className="text-lg font-semibold tracking-tight">Agenda de hoje</h2>
-              <Link to="/_auth/agenda" className="text-sm text-primary font-medium hover:underline flex items-center gap-1">
+              <Link to="/agenda" className="text-sm text-primary font-medium hover:underline flex items-center gap-1">
                 Ver agenda completa <ChevronRight className="size-4" />
               </Link>
             </div>
@@ -202,7 +202,7 @@ function Dashboard() {
                   <p className="text-sm text-muted-foreground mt-1 max-w-sm">
                     Aproveite o tempo livre para focar na gestão ou organizar sua clínica.
                   </p>
-                  <Link to="/_auth/agenda" className="mt-6 px-4 py-2 bg-primary/10 text-primary font-medium rounded-md text-sm hover:bg-primary/20 transition-colors">
+                  <Link to="/agenda" className="mt-6 px-4 py-2 bg-primary/10 text-primary font-medium rounded-md text-sm hover:bg-primary/20 transition-colors">
                     Novo Agendamento
                   </Link>
                 </div>
@@ -290,7 +290,7 @@ function Dashboard() {
           <div className="panel">
             <div className="flex items-center justify-between border-b border-border p-5">
               <h2 className="text-lg font-semibold tracking-tight">Pipeline Comercial</h2>
-              <Link to="/_auth/crm" className="text-sm text-primary font-medium hover:underline">
+              <Link to="/crm" className="text-sm text-primary font-medium hover:underline">
                 Abrir CRM
               </Link>
             </div>

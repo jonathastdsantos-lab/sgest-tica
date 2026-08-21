@@ -115,7 +115,7 @@ function Login() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium" htmlFor="password">Senha</label>
-                <Link to="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/login" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
                   Esqueci minha senha
                 </Link>
               </div>

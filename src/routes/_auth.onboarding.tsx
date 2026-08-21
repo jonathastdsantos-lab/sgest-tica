@@ -69,7 +69,7 @@ function Onboarding() {
           email: email,
           city: city,
           state: state
-        }).eq('id', units[0].id);
+        }).eq('id', units[0]!.id);
       }
 
       // 3. Cadastra o 1º Profissional

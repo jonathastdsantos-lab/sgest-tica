@@ -9,17 +9,20 @@ type TenantContextValue = {
 
 const TenantContext = createContext<TenantContextValue | null>(null);
 
+const tenantPadrao = tenants[0] as Tenant;
+
 export function TenantProvider({ children }: { children: ReactNode }) {
-  const [tenantId, setTenantId] = useState(tenants[0].id);
+  const [tenantId, setTenantId] = useState(tenantPadrao.id);
 
   const value = useMemo<TenantContextValue>(
     () => ({
-      tenant: tenants.find((t) => t.id === tenantId) ?? tenants[0],
+      tenant: tenants.find((t) => t.id === tenantId) ?? tenantPadrao,
       tenants,
       setTenantId,
     }),
     [tenantId],
   );
+
 
   return <TenantContext.Provider value={value}>{children}</TenantContext.Provider>;
 }

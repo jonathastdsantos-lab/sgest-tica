@@ -42,7 +42,7 @@ export function useTenant() {
       if (!error && data) {
         setOrganizations(data);
         if (data.length > 0) {
-          setCurrentOrganization(data[0]);
+          setCurrentOrganization(data[0] ?? null);
         }
       }
       setIsLoading(false);
@@ -109,7 +109,7 @@ export function useTenant() {
     if (!fetchError && fetch) {
       setOrganizations(fetch);
       if (fetch.length > 0) {
-        const newOrg = fetch.find((o) => o.id === data) || fetch[0];
+        const newOrg = fetch.find((o) => o.id === data) ?? fetch[0] ?? null;
         setCurrentOrganization(newOrg);
       }
     }
