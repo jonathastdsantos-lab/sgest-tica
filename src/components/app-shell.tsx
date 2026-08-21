@@ -1,15 +1,26 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, type LinkProps } from "@tanstack/react-router";
 import { 
   CalendarDays, ChevronsUpDown, LayoutGrid, Plus, Sparkles, Users, 
   Wallet, TrendingUp, Stethoscope, Megaphone, Package, UsersRound, 
-  BarChart3, Settings, HelpCircle, Search, Bell, MoreHorizontal, LogOut, FileText, ChevronDown
+  BarChart3, Settings, HelpCircle, Search, Bell, MoreHorizontal, LogOut, FileText, ChevronDown,
+  type LucideIcon
 } from "lucide-react";
 import { useState, type ReactNode, useEffect, useRef } from "react";
+import { useAuth } from "@/hooks/use-auth";
 import { useTenant } from "@/hooks/use-tenant";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 
-const navigation = [
+type NavItem = {
+  to: LinkProps["to"];
+  label: string;
+  icon: LucideIcon;
+  badge?: string;
+  highlight?: boolean;
+  action?: "more";
+};
+
+const navigation: NavItem[] = [
   { to: "/", label: "Visão Geral", icon: LayoutGrid },
   { to: "/agenda", label: "Agenda", icon: CalendarDays },
   { to: "/clientes", label: "Clientes", icon: Users },
@@ -18,23 +29,24 @@ const navigation = [
   { to: "/financeiro", label: "Financeiro", icon: Wallet },
   { to: "/marketing", label: "Marketing", icon: Megaphone, badge: "Em breve" },
   { to: "/estoque", label: "Estoque", icon: Package, badge: "Em breve" },
-  { to: "/equipe", label: "Equipe", icon: UsersRound, badge: "Em breve" },
+  { to: "/equipe", label: "Equipe", icon: UsersRound },
   { to: "/relatorios", label: "Relatórios", icon: BarChart3, badge: "Em breve" },
-] as const;
+];
 
-const bottomNavigation = [
+const bottomNavigation: NavItem[] = [
   { to: "/assistente", label: "Assistente IA", icon: Sparkles, highlight: true },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
   { to: "/ajuda", label: "Ajuda", icon: HelpCircle },
-] as const;
+];
 
-const mobileNavigation = [
+const mobileNavigation: NavItem[] = [
   { to: "/", label: "Home", icon: LayoutGrid },
   { to: "/agenda", label: "Agenda", icon: CalendarDays },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/crm", label: "CRM", icon: TrendingUp },
-  { to: "#", label: "Mais", icon: MoreHorizontal, action: 'more' },
-] as const;
+  { to: "/configuracoes", label: "Mais", icon: MoreHorizontal },
+];
+
 
 export function AppShell({
   children,
