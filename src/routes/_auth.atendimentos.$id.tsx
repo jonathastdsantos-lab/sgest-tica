@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { ClinicalPhotosGallery } from '@/components/clinical-photos-gallery';
 
 export const Route = createFileRoute('/_auth/atendimentos/$id')({
   component: AtendimentoWorkspace,
@@ -263,22 +264,8 @@ function AtendimentoWorkspace() {
           )}
 
           {activeTab === 'fotos' && (
-            <div className="space-y-6 animate-in fade-in duration-300">
-              <div className="flex items-center justify-between border-b border-border pb-2 mb-4">
-                <h2 className="text-lg font-semibold">Fotografias (Antes e Depois)</h2>
-                <button className="text-sm font-medium text-primary hover:underline">Upload de Foto</button>
-              </div>
-              
-              <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed border-border rounded-xl bg-background/50">
-                <div className="size-16 rounded-full bg-accent flex items-center justify-center mb-4 text-muted-foreground">
-                  <ImageIcon className="size-8" />
-                </div>
-                <h3 className="text-lg font-medium">Nenhuma foto anexada</h3>
-                <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                  Na V1 as fotos estão desabilitadas pois o Storage do Supabase precisa de configuração manual no painel. 
-                  (Esta área servirá para comparar simetria e evolução).
-                </p>
-              </div>
+            <div className="animate-in fade-in duration-300">
+              <ClinicalPhotosGallery clientId={apt.client_id} recordId={null} />
             </div>
           )}
 

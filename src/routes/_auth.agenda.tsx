@@ -119,6 +119,42 @@ function Agenda() {
     }
   }, [isModalOpen]);
 
+  const [activePackage, setActivePackage] = useState<any | null>(null);
+  const [deductFromPackage, setDeductFromPackage] = useState(true);
+
+  useEffect(() => {
+    const checkClientPackage = async () => {
+      if (!selectedClient) {
+        setActivePackage(null);
+        return;
+      }
+
+      let query = supabase
+        .from('packages')
+        .select('*, package_sessions(id), procedures(name)')
+        .eq('client_id', selectedClient)
+        .eq('status', 'active');
+
+      if (selectedProc) {
+        query = query.eq('procedure_id', selectedProc);
+      }
+
+      const { data } = await query;
+      if (data && data.length > 0) {
+        const pkg = data.find(p => (p.total_sessions - (p.package_sessions?.length || 0)) > 0);
+        if (pkg) {
+          const balance = pkg.total_sessions - (pkg.package_sessions?.length || 0);
+          setActivePackage({ ...pkg, balance });
+          setDeductFromPackage(true);
+          return;
+        }
+      }
+      setActivePackage(null);
+    };
+
+    checkClientPackage();
+  }, [selectedClient, selectedProc]);
+
   const prevDay = () => { const d = new Date(currentDate); d.setDate(d.getDate() - 1); setCurrentDate(d); };
   const nextDay = () => { const d = new Date(currentDate); d.setDate(d.getDate() + 1); setCurrentDate(d); };
 
@@ -149,8 +185,8 @@ function Agenda() {
       return;
     }
 
-    const { error } = await supabase.from('appointments').insert({
-      organization_id: tenant.id,
+    const { data: insertedApt, error } = await supabase.from('appointments').insert({
+      organization_id: tenant.organization_id || tenant.id,
       unit_id: currentUnit ? currentUnit.id : null,
       client_id: selectedClient,
       professional_id: selectedProf || null,
@@ -158,10 +194,23 @@ function Agenda() {
       start_at: startAt.toISOString(),
       end_at: endAt.toISOString(),
       status: 'scheduled'
-    });
+    }).select('id').single();
 
-    if (!error) {
-      toast.success('Agendamento criado com sucesso.');
+    if (!error && insertedApt) {
+      if (activePackage && deductFromPackage) {
+        await supabase.from('package_sessions').insert({
+          package_id: activePackage.id,
+          appointment_id: insertedApt.id,
+        });
+
+        if (activePackage.balance - 1 <= 0) {
+          await supabase.from('packages').update({ status: 'completed' }).eq('id', activePackage.id);
+        }
+
+        toast.success(`Agendamento criado! 1 sessão descontada do pacote (${activePackage.balance - 1} restantes).`);
+      } else {
+        toast.success('Agendamento criado com sucesso.');
+      }
       setIsModalOpen(false);
       setSelectedClient('');
       setSelectedProf('');
@@ -236,6 +285,22 @@ function Agenda() {
       fetchData(); // revert
     } else {
       toast.success('Horário atualizado!');
+    }
+  };
+
+  const handleConfirmAppointmentStatus = async (aptId: string) => {
+    const { error } = await supabase.from('appointments').update({ status: 'confirmed' }).eq('id', aptId);
+    if (!error) {
+      toast.success('Agendamento confirmado pela recepção!');
+      fetchData();
+    }
+  };
+
+  const handleRefuseAppointmentStatus = async (aptId: string) => {
+    const { error } = await supabase.from('appointments').update({ status: 'cancelled' }).eq('id', aptId);
+    if (!error) {
+      toast.success('Agendamento recusado.');
+      fetchData();
     }
   };
 
@@ -351,21 +416,59 @@ function Agenda() {
                         const durationMins = (end.getTime() - start.getTime()) / 60000;
                         const heightPx = (durationMins / 30) * SLOT_HEIGHT;
 
+                        const isPending = apt.status === 'pending_confirmation';
+
                         return (
                           <div 
                             key={apt.id}
                             draggable
                             onDragStart={(e) => handleDragStart(e, apt.id)}
                             onDragEnd={handleDragEnd}
-                            className="absolute left-1 right-1 z-10 p-2 rounded-lg border border-primary/20 bg-accent/80 text-foreground overflow-hidden cursor-move hover:ring-1 hover:ring-primary transition-all flex flex-col group shadow-xs"
+                            className={cn(
+                              "absolute left-1 right-1 z-10 p-2 rounded-lg border text-foreground overflow-hidden cursor-move transition-all flex flex-col group shadow-xs",
+                              isPending 
+                                ? "bg-amber-500/15 border-amber-500 ring-2 ring-amber-500/30 font-medium" 
+                                : "border-primary/20 bg-accent/80 hover:ring-1 hover:ring-primary"
+                            )}
                             style={{ top: topPx, height: heightPx - 2 }}
                           >
                             <div className="flex items-center justify-between mb-1">
                               <span className="text-[10px] font-semibold text-primary">{start.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</span>
-                              <GripVertical className="size-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                              {isPending ? (
+                                <span className="px-1.5 py-0.2 bg-amber-500 text-white font-bold text-[9px] rounded uppercase tracking-wider">
+                                  Online • Pendente
+                                </span>
+                              ) : (
+                                <GripVertical className="size-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                              )}
                             </div>
                             <span className="text-xs font-semibold text-foreground truncate">{apt.clients?.full_name}</span>
                             <span className="text-[10px] text-muted-foreground truncate">{apt.procedures?.name || 'Consulta'}</span>
+
+                            {isPending && (
+                              <div className="mt-auto pt-1 flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleConfirmAppointmentStatus(apt.id);
+                                  }}
+                                  className="flex-1 bg-emerald-600 text-white text-[10px] font-bold py-0.5 rounded hover:bg-emerald-700 transition-colors"
+                                >
+                                  Confirmar
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRefuseAppointmentStatus(apt.id);
+                                  }}
+                                  className="px-1.5 bg-destructive text-white text-[10px] font-bold py-0.5 rounded hover:bg-destructive/90 transition-colors"
+                                >
+                                  Recusar
+                                </button>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -438,6 +541,24 @@ function Agenda() {
                   {procedures.map(p => <option key={p.id} value={p.id}>{p.name} ({p.duration_minutes} min)</option>)}
                 </select>
               </div>
+
+              {activePackage && (
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center justify-between">
+                  <div className="text-xs text-emerald-800 dark:text-emerald-300">
+                    <strong className="font-semibold block">Pacote Ativo Encontrado:</strong>
+                    {activePackage.procedures?.name || 'Pacote'} • {activePackage.balance} sessões restantes
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-emerald-900 dark:text-emerald-200">
+                    <input
+                      type="checkbox"
+                      checked={deductFromPackage}
+                      onChange={(e) => setDeductFromPackage(e.target.checked)}
+                      className="rounded border-emerald-500 text-primary focus:ring-primary"
+                    />
+                    Descontar 1 sessão
+                  </label>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Profissional</label>

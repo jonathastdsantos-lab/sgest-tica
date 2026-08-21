@@ -35,12 +35,15 @@ function Clientes() {
     setLoading(true);
     const { data, error } = await supabase
       .from('clients')
-      .select('*')
+      .select(`
+        *,
+        packages(id, status)
+      `)
       .eq('organization_id', tenant.organization_id)
       .order('created_at', { ascending: false });
 
     if (!error && data) {
-      setClientes(data);
+      setClientes(data as any);
     }
     setLoading(false);
   };
@@ -154,7 +157,14 @@ function Clientes() {
                         <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors font-semibold text-xs">
                           <User className="size-4" />
                         </div>
-                        <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{cliente.full_name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{cliente.full_name}</span>
+                          {(cliente as any).packages?.filter((p: any) => p.status === 'active').length > 0 && (
+                            <span className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                              {(cliente as any).packages.filter((p: any) => p.status === 'active').length} {(cliente as any).packages.filter((p: any) => p.status === 'active').length === 1 ? 'pacote ativo' : 'pacotes ativos'}
+                            </span>
+                          )}
+                        </div>
                       </Link>
                     </td>
                     <td className="px-6 py-4">

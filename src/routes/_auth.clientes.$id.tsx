@@ -4,9 +4,12 @@ import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
 import { 
   User, Phone, CalendarDays, DollarSign, ArrowLeft, 
-  Plus, MessageSquare, MoreHorizontal, Activity, Star
+  Plus, MessageSquare, MoreHorizontal, Activity, Star, Camera, ShieldAlert, ShieldCheck,
+  Package as PackageIcon, Layers, CheckCircle2, X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { ClinicalPhotosGallery } from '@/components/clinical-photos-gallery';
 
 export const Route = createFileRoute('/_auth/clientes/$id')({
   component: ClientePerfil,
@@ -21,6 +24,7 @@ type ClientProfile = {
   created_at: string;
   birth_date?: string;
   notes?: string;
+  photo_consent?: boolean;
 };
 
 type AppointmentEvent = {
@@ -34,10 +38,9 @@ type AppointmentEvent = {
 const TABS = [
   { id: 'visao-geral', label: 'Visão Geral' },
   { id: 'agenda', label: 'Agenda' },
-  { id: 'tratamentos', label: 'Tratamentos', disabled: true },
   { id: 'prontuario', label: 'Prontuário' },
-  { id: 'fotos', label: 'Fotos', disabled: true },
-  { id: 'financeiro', label: 'Financeiro', disabled: true },
+  { id: 'fotos', label: 'Fotos' },
+  { id: 'pacotes', label: 'Pacotes' },
 ];
 
 function ClientePerfil() {
@@ -47,8 +50,42 @@ function ClientePerfil() {
   const [client, setClient] = useState<ClientProfile | null>(null);
   const [appointments, setAppointments] = useState<AppointmentEvent[]>([]);
   const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
+  const [packagesList, setPackagesList] = useState<any[]>([]);
+  const [proceduresList, setProceduresList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('visao-geral');
+
+  // Package Modal State
+  const [isPkgModalOpen, setIsPkgModalOpen] = useState(false);
+  const [pkgProcedureId, setPkgProcedureId] = useState('');
+  const [pkgTotalSessions, setPkgTotalSessions] = useState('10');
+  const [pkgPricePaid, setPkgPricePaid] = useState('');
+  const [pkgExpiresAt, setPkgExpiresAt] = useState('');
+  const [savingPkg, setSavingPkg] = useState(false);
+
+  const fetchPackagesData = async () => {
+    if (!tenant || !id) return;
+    
+    const { data: pkgsData } = await supabase
+      .from('packages')
+      .select(`
+        id, total_sessions, price_paid, purchased_at, expires_at, status, procedure_id,
+        procedures(name, price),
+        package_sessions(id)
+      `)
+      .eq('client_id', id)
+      .order('created_at', { ascending: false });
+
+    if (pkgsData) setPackagesList(pkgsData);
+
+    const { data: procData } = await supabase
+      .from('procedures')
+      .select('id, name, price')
+      .eq('organization_id', tenant.organization_id)
+      .order('name', { ascending: true });
+
+    if (procData) setProceduresList(procData);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -91,11 +128,55 @@ function ClientePerfil() {
         
       if (recordsData) setMedicalRecords(recordsData);
 
+      await fetchPackagesData();
       setLoading(false);
     };
 
     fetchData();
   }, [id, tenant]);
+
+  const handleToggleConsent = async () => {
+    if (!client) return;
+    const nextConsent = !client.photo_consent;
+    const { error } = await supabase
+      .from('clients')
+      .update({ photo_consent: nextConsent })
+      .eq('id', client.id);
+
+    if (!error) {
+      setClient({ ...client, photo_consent: nextConsent });
+      toast.success(nextConsent ? 'Uso de imagem AUTORIZADO' : 'Uso de imagem REVOGADO');
+    }
+  };
+
+  const handleCreatePackage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tenant || !client) return;
+    setSavingPkg(true);
+
+    const { error } = await supabase.from('packages').insert({
+      organization_id: tenant.organization_id,
+      client_id: client.id,
+      procedure_id: pkgProcedureId || null,
+      total_sessions: Number(pkgTotalSessions) || 10,
+      price_paid: Number(pkgPricePaid) || 0,
+      expires_at: pkgExpiresAt ? new Date(pkgExpiresAt).toISOString() : null,
+      status: 'active',
+    });
+
+    if (!error) {
+      toast.success('Pacote de sessões cadastrado com sucesso!');
+      setIsPkgModalOpen(false);
+      setPkgProcedureId('');
+      setPkgTotalSessions('10');
+      setPkgPricePaid('');
+      setPkgExpiresAt('');
+      await fetchPackagesData();
+    } else {
+      toast.error('Erro ao cadastrar pacote.');
+    }
+    setSavingPkg(false);
+  };
 
   if (loading) {
     return <div className="p-8 text-center text-muted-foreground animate-pulse">Carregando perfil do cliente...</div>;
@@ -152,6 +233,22 @@ function ClientePerfil() {
                   <Star className="size-4" /> {new Date(client.birth_date).toLocaleDateString('pt-BR')}
                 </div>
               )}
+              
+              {/* Consent Toggle Button */}
+              <button
+                type="button"
+                onClick={handleToggleConsent}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all border",
+                  client.photo_consent 
+                    ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30 hover:bg-emerald-500/20 dark:text-emerald-300"
+                    : "bg-amber-500/10 text-amber-700 border-amber-500/30 hover:bg-amber-500/20 dark:text-amber-300"
+                )}
+                title="Clique para alterar o consentimento de uso de imagem do cliente"
+              >
+                {client.photo_consent ? <ShieldCheck className="size-3.5" /> : <ShieldAlert className="size-3.5" />}
+                {client.photo_consent ? 'Uso de Imagem Autorizado' : 'Uso de Imagem Não Autorizado'}
+              </button>
             </div>
           </div>
         </div>
@@ -353,6 +450,181 @@ function ClientePerfil() {
           </div>
         )}
 
+        {activeTab === 'fotos' && (
+          <div className="animate-in fade-in duration-300">
+            <ClinicalPhotosGallery clientId={client.id} />
+          </div>
+        )}
+
+        {activeTab === 'pacotes' && (
+          <div className="panel p-6 space-y-6 animate-in fade-in duration-300">
+            <div className="flex items-center justify-between border-b border-border pb-4">
+              <div>
+                <h2 className="text-lg font-semibold tracking-tight text-foreground flex items-center gap-2">
+                  <PackageIcon className="size-5 text-primary" />
+                  Pacotes de Sessões
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Sessões contratadas em lote com controle de saldo disponível.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsPkgModalOpen(true)}
+                className="flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
+              >
+                <Plus className="size-4" />
+                Novo Pacote
+              </button>
+            </div>
+
+            {packagesList.length === 0 ? (
+              <div className="text-center p-12 border-2 border-dashed border-border rounded-xl bg-background/50 text-muted-foreground flex flex-col items-center justify-center">
+                <div className="size-14 rounded-full bg-accent flex items-center justify-center mb-3 text-muted-foreground">
+                  <PackageIcon className="size-7 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground text-base">Nenhum pacote ativo</h3>
+                <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+                  Cadastre um pacote de sessões (ex: 10 sessões de depilação a laser ou drenagem) para descontar automaticamente na agenda.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {packagesList.map(pkg => {
+                  const usedCount = pkg.package_sessions?.length || 0;
+                  const balance = Math.max(0, pkg.total_sessions - usedCount);
+                  const progressPct = Math.min(100, Math.round((usedCount / pkg.total_sessions) * 100));
+
+                  return (
+                    <div key={pkg.id} className="panel p-5 space-y-4 hover:border-primary/40 transition-all shadow-xs relative">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <span className="text-xs font-semibold text-primary uppercase tracking-wider block">
+                            {pkg.procedures?.name || 'Tratamento / Pacote Geral'}
+                          </span>
+                          <h3 className="text-xl font-bold text-foreground mt-1">
+                            {balance} <span className="text-sm font-normal text-muted-foreground">de {pkg.total_sessions} sessões restantes</span>
+                          </h3>
+                        </div>
+                        <span className={cn(
+                          "px-2.5 py-0.5 rounded-full text-xs font-semibold shrink-0",
+                          balance > 0 ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-accent text-muted-foreground"
+                        )}>
+                          {balance > 0 ? 'Ativo' : 'Concluído'}
+                        </span>
+                      </div>
+
+                      {/* Progress bar */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Progresso</span>
+                          <span>{usedCount} / {pkg.total_sessions} ({progressPct}%)</span>
+                        </div>
+                        <div className="h-2 w-full bg-accent rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-primary transition-all duration-500 rounded-full" 
+                            style={{ width: `${progressPct}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
+                        <span>Valor: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pkg.price_paid || 0)}</span>
+                        {pkg.expires_at && (
+                          <span>Validade: {new Date(pkg.expires_at).toLocaleDateString('pt-BR')}</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Modal Novo Pacote */}
+        {isPkgModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+            <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl ring-1 ring-border animate-in zoom-in-95 duration-200">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold tracking-tight text-foreground">Novo Pacote de Sessões</h2>
+                <button onClick={() => setIsPkgModalOpen(false)} className="text-muted-foreground hover:text-foreground">
+                  <X className="size-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreatePackage} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Procedimento Vinculado</label>
+                  <select
+                    value={pkgProcedureId}
+                    onChange={(e) => setPkgProcedureId(e.target.value)}
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="">Selecione o procedimento...</option>
+                    {proceduresList.map(proc => (
+                      <option key={proc.id} value={proc.id}>
+                        {proc.name} ({new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(proc.price)})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold uppercase text-muted-foreground">Total de Sessões</label>
+                    <input
+                      type="number"
+                      min="1"
+                      required
+                      value={pkgTotalSessions}
+                      onChange={(e) => setPkgTotalSessions(e.target.value)}
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold uppercase text-muted-foreground">Preço Pago (R$)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={pkgPricePaid}
+                      onChange={(e) => setPkgPricePaid(e.target.value)}
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase text-muted-foreground">Validade (Opcional)</label>
+                  <input
+                    type="date"
+                    value={pkgExpiresAt}
+                    onChange={(e) => setPkgExpiresAt(e.target.value)}
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                <div className="pt-3 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsPkgModalOpen(false)}
+                    className="flex h-10 flex-1 items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingPkg}
+                    className="flex h-10 flex-1 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    {savingPkg ? 'Salvando...' : 'Criar Pacote'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

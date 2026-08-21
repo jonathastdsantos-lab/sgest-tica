@@ -22,6 +22,7 @@ import { Route as AuthCrmRouteImport } from './routes/_auth.crm'
 import { Route as AuthEquipeRouteImport } from './routes/_auth.equipe'
 import { Route as AuthFinanceiroRouteImport } from './routes/_auth.financeiro'
 import { Route as AuthOnboardingRouteImport } from './routes/_auth.onboarding'
+import { Route as AgendarOrgSlugRouteImport } from './routes/agendar.$orgSlug'
 import { Route as AuthAtendimentosIdRouteImport } from './routes/_auth.atendimentos.$id'
 import { Route as AuthClientesIdRouteImport } from './routes/_auth.clientes.$id'
 
@@ -89,6 +90,11 @@ const AuthOnboardingRoute = AuthOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthRoute,
 } as any)
+const AgendarOrgSlugRoute = AgendarOrgSlugRouteImport.update({
+  id: '/agendar/$orgSlug',
+  path: '/agendar/$orgSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthAtendimentosIdRoute = AuthAtendimentosIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/equipe': typeof AuthEquipeRoute
   '/financeiro': typeof AuthFinanceiroRoute
   '/onboarding': typeof AuthOnboardingRoute
+  '/agendar/$orgSlug': typeof AgendarOrgSlugRoute
   '/atendimentos/$id': typeof AuthAtendimentosIdRoute
   '/clientes/$id': typeof AuthClientesIdRoute
 }
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/equipe': typeof AuthEquipeRoute
   '/financeiro': typeof AuthFinanceiroRoute
   '/onboarding': typeof AuthOnboardingRoute
+  '/agendar/$orgSlug': typeof AgendarOrgSlugRoute
   '/': typeof AuthIndexRoute
   '/atendimentos/$id': typeof AuthAtendimentosIdRoute
   '/clientes/$id': typeof AuthClientesIdRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/_auth/equipe': typeof AuthEquipeRoute
   '/_auth/financeiro': typeof AuthFinanceiroRoute
   '/_auth/onboarding': typeof AuthOnboardingRoute
+  '/agendar/$orgSlug': typeof AgendarOrgSlugRoute
   '/_auth/': typeof AuthIndexRoute
   '/_auth/atendimentos/$id': typeof AuthAtendimentosIdRoute
   '/_auth/clientes/$id': typeof AuthClientesIdRoute
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
     | '/equipe'
     | '/financeiro'
     | '/onboarding'
+    | '/agendar/$orgSlug'
     | '/atendimentos/$id'
     | '/clientes/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -180,6 +190,7 @@ export interface FileRouteTypes {
     | '/equipe'
     | '/financeiro'
     | '/onboarding'
+    | '/agendar/$orgSlug'
     | '/'
     | '/atendimentos/$id'
     | '/clientes/$id'
@@ -197,6 +208,7 @@ export interface FileRouteTypes {
     | '/_auth/equipe'
     | '/_auth/financeiro'
     | '/_auth/onboarding'
+    | '/agendar/$orgSlug'
     | '/_auth/'
     | '/_auth/atendimentos/$id'
     | '/_auth/clientes/$id'
@@ -206,6 +218,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
+  AgendarOrgSlugRoute: typeof AgendarOrgSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -301,6 +314,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthOnboardingRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/agendar/$orgSlug': {
+      id: '/agendar/$orgSlug'
+      path: '/agendar/$orgSlug'
+      fullPath: '/agendar/$orgSlug'
+      preLoaderRoute: typeof AgendarOrgSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_auth/atendimentos/$id': {
       id: '/_auth/atendimentos/$id'
       path: '/$id'
@@ -373,6 +393,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
+  AgendarOrgSlugRoute: AgendarOrgSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
