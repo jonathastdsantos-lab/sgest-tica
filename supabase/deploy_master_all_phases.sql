@@ -3,6 +3,8 @@
 -- Execute este script no SQL Editor do Supabase. É 100% idempotente e seguro.
 -- ===============================================================================
 
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- 1. FUNÇÕES AUXILIARES E RLS
 CREATE OR REPLACE FUNCTION public.user_has_org_access(org_id UUID) RETURNS BOOLEAN AS $$
   SELECT EXISTS (
@@ -22,7 +24,7 @@ $$ LANGUAGE plpgsql;
 
 -- 2. ESTRUTURA BASE (ORGANIZAÇÕES, UNIDADES E MEMBROS)
 CREATE TABLE IF NOT EXISTS public.organizations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     phone TEXT,
     logo_url TEXT,
@@ -38,7 +40,7 @@ SET slug = COALESCE(NULLIF(LOWER(REGEXP_REPLACE(name, '[^a-zA-Z0-9]', '', 'g')),
 WHERE slug IS NULL;
 
 CREATE TABLE IF NOT EXISTS public.units (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     phone TEXT,
@@ -47,7 +49,7 @@ CREATE TABLE IF NOT EXISTS public.units (
 );
 
 CREATE TABLE IF NOT EXISTS public.organization_members (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     default_unit_id UUID REFERENCES public.units(id) ON DELETE SET NULL,
@@ -57,7 +59,7 @@ CREATE TABLE IF NOT EXISTS public.organization_members (
 );
 
 CREATE TABLE IF NOT EXISTS public.user_units (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     unit_id UUID NOT NULL REFERENCES public.units(id) ON DELETE CASCADE,
@@ -67,7 +69,7 @@ CREATE TABLE IF NOT EXISTS public.user_units (
 
 -- 3. TABELAS DE CLIENTES, PROCEDIMENTOS E PROFISSIONAIS
 CREATE TABLE IF NOT EXISTS public.clients (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     full_name TEXT NOT NULL,
     phone TEXT,
@@ -83,7 +85,7 @@ ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS photo_consent BOOLEAN DEFAUL
 ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS email TEXT;
 
 CREATE TABLE IF NOT EXISTS public.procedures (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     price DECIMAL(10,2) NOT NULL DEFAULT 0,
@@ -93,7 +95,7 @@ CREATE TABLE IF NOT EXISTS public.procedures (
 );
 
 CREATE TABLE IF NOT EXISTS public.professionals (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     role TEXT DEFAULT 'Especialista',
@@ -104,7 +106,7 @@ CREATE TABLE IF NOT EXISTS public.professionals (
 
 -- 4. AGENDAMENTOS E LEADS (CRM)
 CREATE TABLE IF NOT EXISTS public.appointments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     unit_id UUID REFERENCES public.units(id) ON DELETE CASCADE,
     client_id UUID REFERENCES public.clients(id) ON DELETE CASCADE,
@@ -120,7 +122,7 @@ CREATE TABLE IF NOT EXISTS public.appointments (
 );
 
 CREATE TABLE IF NOT EXISTS public.leads (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     unit_id UUID REFERENCES public.units(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
@@ -132,7 +134,7 @@ CREATE TABLE IF NOT EXISTS public.leads (
 
 -- 5. PRONTUÁRIOS E FOTOS CLÍNICAS
 CREATE TABLE IF NOT EXISTS public.medical_records (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     client_id UUID NOT NULL REFERENCES public.clients(id) ON DELETE CASCADE,
     professional_id UUID REFERENCES public.professionals(id) ON DELETE SET NULL,
@@ -145,7 +147,7 @@ CREATE TABLE IF NOT EXISTS public.medical_records (
 );
 
 CREATE TABLE IF NOT EXISTS public.clinical_photos (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     client_id UUID NOT NULL REFERENCES public.clients(id) ON DELETE CASCADE,
     record_id UUID REFERENCES public.medical_records(id) ON DELETE CASCADE,
@@ -157,14 +159,20 @@ CREATE TABLE IF NOT EXISTS public.clinical_photos (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- Bucket para Fotos Clínicas
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('clinical-photos', 'clinical-photos', false)
-ON CONFLICT (id) DO NOTHING;
+-- Bucket para Fotos Clínicas (Seguro contra erros de permissão de storage)
+DO $$
+BEGIN
+    INSERT INTO storage.buckets (id, name, public)
+    VALUES ('clinical-photos', 'clinical-photos', false)
+    ON CONFLICT (id) DO NOTHING;
+EXCEPTION WHEN OTHERS THEN
+    NULL;
+END;
+$$;
 
 -- 6. FINANCEIRO E PACOTES DE SESSÕES
 CREATE TABLE IF NOT EXISTS public.financial_transactions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     unit_id UUID REFERENCES public.units(id) ON DELETE SET NULL,
     client_id UUID REFERENCES public.clients(id) ON DELETE SET NULL,
@@ -180,7 +188,7 @@ CREATE TABLE IF NOT EXISTS public.financial_transactions (
 );
 
 CREATE TABLE IF NOT EXISTS public.packages (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     client_id UUID NOT NULL REFERENCES public.clients(id) ON DELETE CASCADE,
     procedure_id UUID REFERENCES public.procedures(id) ON DELETE SET NULL,
@@ -193,7 +201,7 @@ CREATE TABLE IF NOT EXISTS public.packages (
 );
 
 CREATE TABLE IF NOT EXISTS public.package_sessions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID REFERENCES public.organizations(id) ON DELETE CASCADE,
     package_id UUID NOT NULL REFERENCES public.packages(id) ON DELETE CASCADE,
     appointment_id UUID REFERENCES public.appointments(id) ON DELETE SET NULL,
