@@ -1,5 +1,5 @@
 -- ===============================================================================
--- SGEstética - Master Script de Migração Consolidado (Fases 1 a 5 + Novas Funcionalidades)
+-- SGEstética - Master Script de Migração Consolidado (Fases 1 a 6 + Agendamento Público)
 -- Execute este script no SQL Editor do Supabase. É 100% idempotente e seguro.
 -- ===============================================================================
 
@@ -72,11 +72,15 @@ CREATE TABLE IF NOT EXISTS public.clients (
     full_name TEXT NOT NULL,
     phone TEXT,
     whatsapp TEXT,
+    email TEXT,
     status TEXT DEFAULT 'active',
     photo_consent BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
+
+ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS photo_consent BOOLEAN DEFAULT false;
+ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS email TEXT;
 
 CREATE TABLE IF NOT EXISTS public.procedures (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -153,11 +157,16 @@ CREATE TABLE IF NOT EXISTS public.clinical_photos (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
+-- Bucket para Fotos Clínicas
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('clinical-photos', 'clinical-photos', false)
+ON CONFLICT (id) DO NOTHING;
+
 -- 6. FINANCEIRO E PACOTES DE SESSÕES
 CREATE TABLE IF NOT EXISTS public.financial_transactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
-    unit_id UUID REFERENCES public.units(id) ON DELETE CASCADE,
+    unit_id UUID REFERENCES public.units(id) ON DELETE SET NULL,
     client_id UUID REFERENCES public.clients(id) ON DELETE SET NULL,
     appointment_id UUID REFERENCES public.appointments(id) ON DELETE SET NULL,
     transaction_type TEXT NOT NULL CHECK (transaction_type IN ('income', 'expense')),
@@ -175,7 +184,7 @@ CREATE TABLE IF NOT EXISTS public.packages (
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     client_id UUID NOT NULL REFERENCES public.clients(id) ON DELETE CASCADE,
     procedure_id UUID REFERENCES public.procedures(id) ON DELETE SET NULL,
-    total_sessions INT NOT NULL,
+    total_sessions INT NOT NULL CHECK (total_sessions > 0),
     price_paid NUMERIC DEFAULT 0,
     purchased_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
     expires_at TIMESTAMP WITH TIME ZONE,
@@ -185,12 +194,131 @@ CREATE TABLE IF NOT EXISTS public.packages (
 
 CREATE TABLE IF NOT EXISTS public.package_sessions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID REFERENCES public.organizations(id) ON DELETE CASCADE,
     package_id UUID NOT NULL REFERENCES public.packages(id) ON DELETE CASCADE,
     appointment_id UUID REFERENCES public.appointments(id) ON DELETE SET NULL,
     used_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- 7. HABILITAR E CONFIGURAR ROW LEVEL SECURITY (RLS)
+-- View Auxiliar de Saldo de Pacotes
+CREATE OR REPLACE VIEW public.package_balances AS
+SELECT
+  p.id AS package_id,
+  p.organization_id,
+  p.client_id,
+  p.procedure_id,
+  p.total_sessions,
+  COALESCE(count(ps.id), 0) AS sessions_used,
+  p.total_sessions - COALESCE(count(ps.id), 0) AS sessions_remaining,
+  p.status,
+  p.expires_at
+FROM public.packages p
+LEFT JOIN public.package_sessions ps ON ps.package_id = p.id
+GROUP BY p.id;
+
+-- 7. FUNÇÕES DE AGENDAMENTO PÚBLICO (RPC SECURITY DEFINER)
+CREATE OR REPLACE FUNCTION public.get_public_org(p_slug TEXT)
+RETURNS TABLE (id UUID, name TEXT) AS $$
+  SELECT id, name FROM public.organizations WHERE slug = p_slug;
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
+CREATE OR REPLACE FUNCTION public.get_public_procedures(p_org_id UUID)
+RETURNS TABLE (id UUID, name TEXT, duration_minutes INT, price NUMERIC) AS $$
+  SELECT id, name, duration_minutes, price
+  FROM public.procedures
+  WHERE organization_id = p_org_id AND (active = true OR active IS NULL);
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
+CREATE OR REPLACE FUNCTION public.get_public_professionals(p_org_id UUID, p_procedure_id UUID DEFAULT NULL)
+RETURNS TABLE (id UUID, full_name TEXT) AS $$
+  SELECT prof.id, prof.name AS full_name
+  FROM public.professionals prof
+  WHERE prof.organization_id = p_org_id AND (prof.status = 'active' OR prof.status IS NULL);
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
+CREATE OR REPLACE FUNCTION public.get_available_slots(p_professional_id UUID, p_date DATE)
+RETURNS TABLE (slot_start TIMESTAMP WITH TIME ZONE) AS $$
+  WITH business_hours AS (
+    SELECT generate_series(
+      (p_date::timestamp + interval '8 hours'),
+      (p_date::timestamp + interval '18 hours 30 minutes'),
+      interval '30 minutes'
+    ) AS slot_start
+  ),
+  busy AS (
+    SELECT start_at, end_at
+    FROM public.appointments
+    WHERE professional_id = p_professional_id
+      AND start_at::date = p_date
+      AND (status != 'cancelled' OR status IS NULL)
+  )
+  SELECT bh.slot_start
+  FROM business_hours bh
+  WHERE NOT EXISTS (
+    SELECT 1 FROM busy
+    WHERE bh.slot_start >= busy.start_at AND bh.slot_start < busy.end_at
+  );
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
+CREATE OR REPLACE FUNCTION public.create_public_appointment(
+  p_org_id UUID,
+  p_unit_id UUID,
+  p_professional_id UUID,
+  p_procedure_id UUID,
+  p_start_at TIMESTAMP WITH TIME ZONE,
+  p_end_at TIMESTAMP WITH TIME ZONE,
+  p_client_name TEXT,
+  p_client_phone TEXT,
+  p_client_email TEXT DEFAULT NULL
+) RETURNS UUID AS $$
+DECLARE
+  v_client_id UUID;
+  v_appointment_id UUID;
+  v_conflict INT;
+BEGIN
+  SELECT count(*) INTO v_conflict
+  FROM public.appointments
+  WHERE professional_id = p_professional_id
+    AND status != 'cancelled'
+    AND start_at < p_end_at AND end_at > p_start_at;
+
+  IF v_conflict > 0 THEN
+    RAISE EXCEPTION 'Horário indisponível';
+  END IF;
+
+  SELECT id INTO v_client_id
+  FROM public.clients
+  WHERE organization_id = p_org_id AND phone = p_client_phone
+  LIMIT 1;
+
+  IF v_client_id IS NULL THEN
+    INSERT INTO public.clients (organization_id, full_name, phone, email)
+    VALUES (p_org_id, p_client_name, p_client_phone, p_client_email)
+    RETURNING id INTO v_client_id;
+  END IF;
+
+  INSERT INTO public.appointments (
+    organization_id, unit_id, client_id, professional_id, procedure_id,
+    start_at, end_at, status, source
+  ) VALUES (
+    p_org_id, p_unit_id, v_client_id, p_professional_id, p_procedure_id,
+    p_start_at, p_end_at, 'pending_confirmation', 'online'
+  ) RETURNING id INTO v_appointment_id;
+
+  RETURN v_appointment_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Conceder permissões para usuários anônimos
+GRANT EXECUTE ON FUNCTION public.get_public_org(TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_public_procedures(UUID) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_public_professionals(UUID, UUID) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_available_slots(UUID, DATE) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.create_public_appointment(
+  UUID, UUID, UUID, UUID, TIMESTAMP WITH TIME ZONE, TIMESTAMP WITH TIME ZONE, TEXT, TEXT, TEXT
+) TO anon, authenticated;
+
+-- 8. HABILITAR E CONFIGURAR ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.organization_members ENABLE ROW LEVEL SECURITY;
@@ -235,6 +363,7 @@ BEGIN
 
     DROP POLICY IF EXISTS "Users can view package_sessions of their org" ON public.package_sessions;
     DROP POLICY IF EXISTS "Users can access package_sessions of their org" ON public.package_sessions;
+    DROP POLICY IF EXISTS "Users can access package_sessions of their organizations" ON public.package_sessions;
     CREATE POLICY "Users can access package_sessions of their org" 
     ON public.package_sessions FOR ALL 
     USING (EXISTS (SELECT 1 FROM public.packages p WHERE p.id = package_sessions.package_id AND public.user_has_org_access(p.organization_id)));
