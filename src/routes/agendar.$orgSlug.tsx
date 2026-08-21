@@ -47,7 +47,7 @@ function AgendamentoPublico() {
   // Selected State
   const [selectedProc, setSelectedProc] = useState<Procedure | null>(null);
   const [selectedProf, setSelectedProf] = useState<Professional | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0] ?? '');
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [busySlots, setBusySlots] = useState<string[]>([]);
 
@@ -166,7 +166,7 @@ function AgendamentoPublico() {
         .limit(1);
 
       if (existingClients && existingClients.length > 0) {
-        clientId = existingClients[0].id;
+        clientId = existingClients[0]!.id;
       } else {
         const { data: newClient, error: clientErr } = await supabase
           .from('clients')

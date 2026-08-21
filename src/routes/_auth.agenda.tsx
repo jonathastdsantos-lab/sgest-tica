@@ -114,7 +114,7 @@ function Agenda() {
   useEffect(() => {
     if (isModalOpen) {
       fetchDependencies();
-      setDateInput(currentDate.toISOString().split('T')[0]);
+      setDateInput(currentDate.toISOString().split('T')[0] ?? '');
       setTimeInput('09:00');
     }
   }, [isModalOpen]);
@@ -245,7 +245,7 @@ function Agenda() {
     if (!apt) return;
 
     const newStartAt = new Date(currentDate);
-    const [hours, minutes] = timeStr.split(':').map(Number);
+    const [hours = 0, minutes = 0] = timeStr.split(':').map(Number);
     newStartAt.setHours(hours, minutes, 0, 0);
 
     const durationMs = new Date(apt.end_at).getTime() - new Date(apt.start_at).getTime();

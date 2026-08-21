@@ -194,8 +194,8 @@ function ClientePerfil() {
   const pastAppointments = appointments.filter(a => new Date(a.start_at) < new Date() && a.status !== 'cancelled');
   const futureAppointments = appointments.filter(a => new Date(a.start_at) >= new Date() && a.status !== 'cancelled');
 
-  const ultimaVisita = pastAppointments.length > 0 ? new Date(pastAppointments[0].start_at) : null;
-  const proximaVisita = futureAppointments.length > 0 ? new Date(futureAppointments[futureAppointments.length - 1].start_at) : null;
+  const ultimaVisita = pastAppointments.length > 0 ? new Date(pastAppointments[0]!.start_at) : null;
+  const proximaVisita = futureAppointments.length > 0 ? new Date(futureAppointments[futureAppointments.length - 1]!.start_at) : null;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto">
