@@ -32,64 +32,69 @@ function Dashboard() {
       if (!tenant) return;
       setLoading(true);
 
-      const startOfDay = new Date();
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date();
-      endOfDay.setHours(23, 59, 59, 999);
+      try {
+        const orgId = tenant.organization_id || tenant.id;
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date();
+        endOfDay.setHours(23, 59, 59, 999);
 
-      // Builder de query com base na unidade selecionada
-      const buildQuery = (table: string) => {
-        const q = supabase.from(table).select('*', { count: 'exact', head: true })
-          .eq('organization_id', tenant.id);
-        if (currentUnit) q.eq('unit_id', currentUnit.id);
-        return q;
-      };
+        // Builder de query com base na unidade selecionada
+        const buildQuery = (table: string) => {
+          const q = supabase.from(table).select('*', { count: 'exact', head: true })
+            .eq('organization_id', orgId);
+          if (currentUnit) q.eq('unit_id', currentUnit.id);
+          return q;
+        };
 
-      // Atendimentos Hoje
-      const { count: aptCount } = await buildQuery('appointments')
-        .gte('start_at', startOfDay.toISOString())
-        .lte('start_at', endOfDay.toISOString());
-      
-      if (aptCount !== null) setAppointmentsCount(aptCount);
-
-      // Novos Leads Hoje
-      const { count: lCount } = await buildQuery('leads')
-        .gte('created_at', startOfDay.toISOString());
-      
-      if (lCount !== null) setLeadsCount(lCount);
-
-      // CRM Stats
-      let leadsQuery = supabase.from('leads').select('status').eq('organization_id', tenant.id);
-      if (currentUnit) leadsQuery = leadsQuery.eq('unit_id', currentUnit.id);
-      
-      const { data: leads } = await leadsQuery;
-      
-      if (leads) {
-        const open = leads.filter(l => l.status === 'open').length;
-        const won = leads.filter(l => l.status === 'won').length;
-        setCrmStats({ open, won });
-      }
-
-      // Agenda de Hoje
-      let agendaQuery = supabase
-        .from('appointments')
-        .select(`
-          id, start_at, status,
-          clients(full_name),
-          procedures(name)
-        `)
-        .eq('organization_id', tenant.id)
-        .gte('start_at', startOfDay.toISOString())
-        .lte('start_at', endOfDay.toISOString())
-        .order('start_at', { ascending: true })
-        .limit(5);
+        // Atendimentos Hoje
+        const { count: aptCount } = await buildQuery('appointments')
+          .gte('start_at', startOfDay.toISOString())
+          .lte('start_at', endOfDay.toISOString());
         
-      if (currentUnit) agendaQuery = agendaQuery.eq('unit_id', currentUnit.id);
-      
-      const { data: agenda } = await agendaQuery;
-      if (agenda) setTodaysAgenda(agenda);
+        if (aptCount !== null) setAppointmentsCount(aptCount);
 
-      setLoading(false);
+        // Novos Leads Hoje
+        const { count: lCount } = await buildQuery('leads')
+          .gte('created_at', startOfDay.toISOString());
+        
+        if (lCount !== null) setLeadsCount(lCount);
+
+        // CRM Stats
+        let leadsQuery = supabase.from('leads').select('status').eq('organization_id', orgId);
+        if (currentUnit) leadsQuery = leadsQuery.eq('unit_id', currentUnit.id);
+        
+        const { data: leads } = await leadsQuery;
+        
+        if (leads) {
+          const open = leads.filter(l => l.status === 'open').length;
+          const won = leads.filter(l => l.status === 'won').length;
+          setCrmStats({ open, won });
+        }
+
+        // Agenda de Hoje
+        let agendaQuery = supabase
+          .from('appointments')
+          .select(`
+            id, start_at, status,
+            clients(full_name),
+            procedures(name)
+          `)
+          .eq('organization_id', orgId)
+          .gte('start_at', startOfDay.toISOString())
+          .lte('start_at', endOfDay.toISOString())
+          .order('start_at', { ascending: true })
+          .limit(5);
+          
+        if (currentUnit) agendaQuery = agendaQuery.eq('unit_id', currentUnit.id);
+        
+        const { data: agenda } = await agendaQuery;
+        if (agenda) setTodaysAgenda(agenda);
+      } catch (err) {
+        console.error('Erro ao carregar dados do dashboard:', err);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchDashboardData();
